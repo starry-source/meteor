@@ -1,5 +1,27 @@
 @import url('base.css');
 
-#tit{
-    font-size: 170px;
+#main{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 0;
+}
+#main>img{
+    height: 170px;
+    width: 170px;
+    user-select: none;
+}
+
+#main>span{
+    font-weight: 100;
+}
+
+#main>.tit{
+    font-size: 50px;
+}
+#main>.det{
+    font-size: 20px;
+}
+#main>.aut{
+    font-weight: 300;
 }
