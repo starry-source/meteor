@@ -1,317 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meteor - 编辑</title>
     <link rel="stylesheet" href="/lib/edit.css">
     <link rel="stylesheet" href="/lib/booticon.css">
+    
 </head>
+
 <body>
-    <script src="/lib/jq.min.js"></script>
-    <div id="select"></div>
-    <div id="editcnt">
-        <div class="win">
-            <input type="text" class="inp" onkeydown="if(event.keyCode==13)$('#editcnt>.win>div>.sub').click()">
-            <div style="display: flex;justify-content: end;margin-top: 5px;">
-                <a class="a btn sub" style="background-color: #2983cc;color: #fff;" onclick="$('#editcnt').removeClass('show')">确定</a>
-                <a class="a btn" onclick="$('#editcnt').removeClass('show')">取消</a>
-            </div>
-        </div>
-    </div>
-    <div id="move" onmousedown="mvmd(event)" onmouseup="mvmu(event)"></div>
-    <div id="mainpage">
-        <div id="head">
-            <div class="bar">
-                {{ name }}
-            </div>
-        </div>
-        <div class="cnt">
-            <div class="pages">
-                <div id="pages" class="list">
-                    {% for i in file.data %}
-                    <a class="a" onclick="gotopage('{{ forloop.counter0 }}')">{{ i.name }}</a>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="thispage">
-                <div class="p1">
-                    <iframe id="page">
-
-                    </iframe>
-                    <div id="toolbar">
-                        <div class="b mded">
-                            <div class="a bt l sel" onclick="
-                                mded=false;$('#toolbar>.mded>*').removeClass('sel');
-                                $(this).addClass('sel');
-                                $('#page').removeClass('sel');
-                                $('#page').removeClass('sel');
-                                disop()">
-                                <i class="bi bi-hand-index"></i>
-                                <span>交互</span>
-                            </div>
-                            <div class="a bt l" onclick="
-                                mded=true;
-                                $('#toolbar>.mded>*').removeClass('sel');
-                                $(this).addClass('sel');
-                                $('#page').addClass('sel');
-                                focpage();
-                                // document.addEventListener('onmousemove')
-                                ">
-                                <i class="bi bi-cursor"></i>
-                                <span>选择</span>
-                            </div>
-                        </div>
-                        <div class="b ac">
-                            <div class="a bt l mv" onclick="stmove()">
-                                <i class="bi bi-arrows-move"></i>
-                                <span>移动</span>
-                            </div>
-                            <div class="a bt l dl" onclick="delEle()">
-                                <i class="bi bi-trash3"></i>
-                                <span>删除</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="tools">
-                        <div class="group big">
-                            <div class="fun">
-                                <div class="ts big" onclick="addEle('p')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-blockquote-left" viewBox="0 0 16 16">
-                                        <path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm5 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm0 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm-5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm.79-5.373c.112-.078.26-.17.444-.275L3.524 6c-.122.074-.272.17-.452.287-.18.117-.35.26-.51.428a2.425 2.425 0 0 0-.398.562c-.11.207-.164.438-.164.692 0 .36.072.65.217.873.144.219.385.328.72.328.215 0 .383-.07.504-.211a.697.697 0 0 0 .188-.463c0-.23-.07-.404-.211-.521-.137-.121-.326-.182-.568-.182h-.282c.024-.203.065-.37.123-.498a1.38 1.38 0 0 1 .252-.37 1.94 1.94 0 0 1 .346-.298zm2.167 0c.113-.078.262-.17.445-.275L5.692 6c-.122.074-.272.17-.452.287-.18.117-.35.26-.51.428a2.425 2.425 0 0 0-.398.562c-.11.207-.164.438-.164.692 0 .36.072.65.217.873.144.219.385.328.72.328.215 0 .383-.07.504-.211a.697.697 0 0 0 .188-.463c0-.23-.07-.404-.211-.521-.137-.121-.326-.182-.568-.182h-.282a1.75 1.75 0 0 1 .118-.492c.058-.13.144-.254.257-.375a1.94 1.94 0 0 1 .346-.3z"/>
-                                      </svg>
-                                    <span>文段</span>
-                                </div>
-                                <div class="ts big" onclick="addEle('span')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-textarea-t" viewBox="0 0 16 16">
-                                        <path d="M1.5 2.5A1.5 1.5 0 0 1 3 1h10a1.5 1.5 0 0 1 1.5 1.5v3.563a2 2 0 0 1 0 3.874V13.5A1.5 1.5 0 0 1 13 15H3a1.5 1.5 0 0 1-1.5-1.5V9.937a2 2 0 0 1 0-3.874V2.5zm1 3.563a2 2 0 0 1 0 3.874V13.5a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V9.937a2 2 0 0 1 0-3.874V2.5A.5.5 0 0 0 13 2H3a.5.5 0 0 0-.5.5v3.563zM2 7a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm12 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
-                                        <path d="M11.434 4H4.566L4.5 5.994h.386c.21-1.252.612-1.446 2.173-1.495l.343-.011v6.343c0 .537-.116.665-1.049.748V12h3.294v-.421c-.938-.083-1.054-.21-1.054-.748V4.488l.348.01c1.56.05 1.963.244 2.173 1.496h.386L11.434 4z"/>
-                                      </svg>
-                                    <span>文本</span>
-                                </div>
-                                <div class="ts big" onclick="addEle('div')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bounding-box-circles" viewBox="0 0 16 16">
-                                        <path d="M2 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM0 2a2 2 0 0 1 3.937-.5h8.126A2 2 0 1 1 14.5 3.937v8.126a2 2 0 1 1-2.437 2.437H3.937A2 2 0 1 1 1.5 12.063V3.937A2 2 0 0 1 0 2zm2.5 1.937v8.126c.703.18 1.256.734 1.437 1.437h8.126a2.004 2.004 0 0 1 1.437-1.437V3.937A2.004 2.004 0 0 1 12.063 2.5H3.937A2.004 2.004 0 0 1 2.5 3.937zM14 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM2 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm12 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
-                                      </svg>
-                                    <span>方块</span>
-                                </div>
-                            </div>
-                            <span>常用</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="chsbox unit part">
-
-                </div>
-                <div class="p2">
-                    <div id="edit">
-                        <div class="head">
-                            <span>编辑</span>
-                            <div class="tabbar">
-                                <div class="a prop show" onclick="
-                                    $('#edit>.head>.tabbar>.a.show,#edlist>.pg.show').removeClass('show');
-                                    $('#edit>.head>.tabbar>.a.prop,#edlist>.pg.prop').addClass('show')">
-                                    参数
-                                </div>
-                                <div class="a posi" onclick="
-                                    $('#edit>.head>.tabbar>.a.show,#edlist>.pg.show').removeClass('show');
-                                    $('#edit>.head>.tabbar>.a.posi,#edlist>.pg.posi').addClass('show')">
-                                    位形
-                                </div>
-                                <div class="a appr" onclick="
-                                    $('#edit>.head>.tabbar>.a.show,#edlist>.pg.show').removeClass('show');
-                                    $('#edit>.head>.tabbar>.a.appr,#edlist>.pg.appr').addClass('show')">
-                                    样式
-                                </div>
-                            </div>
-                        </div>
-                        <div id="edlist" class="tabbox">
-                            <div class="pg prop show">
-                            </div>
-                            <div class="pg posi">
-                                <div class="bs" id="bs">
-                                    <a class="a chsbtn position" onclick="openchs(this,'position')" style="grid-area: p;">
-                                        <span>位置</span>
-                                        <i class="bi bi-three-dots"></i>
-                                    </a>
-                                    <a class="a chsbtn display" onclick="openchs(this,'display')" style="grid-area: d;">
-                                        <span>布局</span>
-                                        <i class="bi bi-three-dots"></i>
-                                    </a>
-                                    <div class="chsbox position" style="grid-area: pb;">
-                                        
-                                    </div>
-                                    <div class="chsbox display" style="grid-area: db;">
-                                        
-                                    </div>
-                                    <div class="tabbar smsc" style="grid-area: t;">
-                                        <div class="a opo show" onclick="
-                                            $('#bs>.tabbar>.a.show,#bs>.ops>.pg.show').removeClass('show');
-                                            $('#bs>.tabbar>.a.opo,#bs>.ops>.pg.opo').addClass('show')">
-                                            外位置
-                                        </div>
-                                        <div class="a om" onclick="
-                                            $('#bs>.tabbar>.a.show,#bs>.ops>.pg.show').removeClass('show');
-                                            $('#bs>.tabbar>.a.om,#bs>.ops>.pg.om').addClass('show')">
-                                            外偏移
-                                        </div>
-                                        <div class="a ip" onclick="
-                                            $('#bs>.tabbar>.a.show,#bs>.ops>.pg.show').removeClass('show');
-                                            $('#bs>.tabbar>.a.ip,#bs>.ops>.pg.ip').addClass('show')">
-                                            内边距
-                                        </div>
-                                        <div class="a id" onclick="
-                                            $('#bs>.tabbar>.a.show,#bs>.ops>.pg.show').removeClass('show');
-                                            $('#bs>.tabbar>.a.id,#bs>.ops>.pg.id').addClass('show')">
-                                            内布局
-                                        </div>
-                                        <div class="a ft" onclick="
-                                            $('#bs>.tabbar>.a.show,#bs>.ops>.pg.show').removeClass('show');
-                                            $('#bs>.tabbar>.a.ft,#bs>.ops>.pg.ft').addClass('show')">
-                                            文字
-                                        </div>
-                                    </div>
-                                    <div class="ops tabbox">
-                                        <div class="pg opo show">
-                                            <div class="op l" style="grid-area: l;">
-                                                <span>左</span>
-                                                <input type="text" class="inp" onblur="mostyle('left',this.value)" onkeyup="if(event.keyCode==13)mostyle('left',this.value)">
-                                            </div>
-                                            <div class="op t" style="grid-area: t;">
-                                                <span>上</span>
-                                                <input type="text" class="inp" onblur="mostyle('top',this.value)" onkeyup="if(event.keyCode==13)mostyle('top',this.value)">
-                                            </div>
-                                            <div class="op r" style="grid-area: r;">
-                                                <span>右</span>
-                                                <input type="text" class="inp" onblur="mostyle('right',this.value)" onkeyup="if(event.keyCode==13)mostyle('right',this.value)">
-                                            </div>
-                                            <div class="op b" style="grid-area: b;">
-                                                <span>下</span>
-                                                <input type="text" class="inp" onblur="mostyle('bottom',this.value)" onkeyup="if(event.keyCode==13)mostyle('bottom',this.value)">
-                                            </div>
-                                            <hr style="grid-area: x;">
-                                            <div class="op h pgr" style="grid-area: h;">
-                                                <span>高</span>
-                                                <input type="text" class="inp" onblur="mostyle('height',this.value)" onkeyup="if(event.keyCode==13)mostyle('height',this.value)">
-                                            </div>
-                                            <div class="op w pgr" style="grid-area: w;">
-                                                <span>宽</span>
-                                                <input type="text" class="inp" onblur="mostyle('width',this.value)" onkeyup="if(event.keyCode==13)mostyle('width',this.value)">
-                                            </div>
-                                        </div>
-                                        <div class="pg om">
-                                            <!-- <div class="op t" style="grid-area: t;">
-                                                <span>上</span>
-                                                <input type="text" class="inp" onblur="mostyle('margin-top',this.value)" onkeyup="if(event.keyCode==13)mostyle('margin-top',this.value)">
-                                            </div>
-                                            <div class="op r" style="grid-area: r;">
-                                                <span>右</span>
-                                                <input type="text" class="inp" onblur="mostyle('margin-right',this.value)" onkeyup="if(event.keyCode==13)mostyle('margin-right',this.value)">
-                                            </div>
-                                            <div class="op b" style="grid-area: b;">
-                                                <span>下</span>
-                                                <input type="text" class="inp" onblur="mostyle('margin-bottom',this.value)" onkeyup="if(event.keyCode==13)mostyle('margin-bottom',this.value)">
-                                            </div>
-                                            <div class="op l" style="grid-area: l;">
-                                                <span>左</span>
-                                                <input type="text" class="inp" onblur="mostyle('margin-left',this.value)" onkeyup="if(event.keyCode==13)mostyle('margin-left',this.value)">
-                                            </div> -->
-                                        </div>
-                                        <div class="pg ip">
-                                            ip
-                                        </div>
-                                        <div class="pg id">
-                                            id
-                                        </div>
-                                        <div class="pg ft">
-                                            <div class="op pgr size len">
-                                                <span>大小</span>
-                                                <input type="number" class="inp" onblur="mostyle('font-size',$(this).val() + $('#bs>.ops>.pg.ft>.op.size>.chsbtn>span').text())">
-                                                <a class="a chsbtn unit pgr" onclick="openchs(this,'unit')" stylekey="font-size" valpath="#bs>.ops>.pg.ft>.op.size>.inp"><span></span><i class="bi bi-three-dots"></i></a>
-                                            </div>
-                                            <div class="op fam pgr">
-                                                <span>字体</span>
-                                                <input type="text" class="inp" onblur="mostyle('font-family',this.value)" onkeyup="if(event.keyCode==13)mostyle('font-family',this.value)">
-                                            </div>
-                                            <div class="op color pgr">
-                                                <span>颜色</span>
-                                                <input type="text" class="inp" onblur="mostyle('color',this.value)" onkeyup="if(event.keyCode==13)mostyle('color',this.value)">
-                                            </div>
-                                            
-                                            <a class="a chsbtn text-align pgr" onclick="openchs(this,'text-align')" >
-                                                <span>文字位置</span>
-                                                <i class="bi bi-three-dots"></i>
-                                            </a>
-                                            <div class="chsbox text-align">
-                                                
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                            
-                            <div class="pg appr">
-                                <div class="op bgcolor pgr">
-                                    <span>背景色</span>
-                                    <input type="text" class="inp" onblur="mostyle('background-color',this.value)" onkeyup="if(event.keyCode==13)mostyle('background-color',this.value)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="options">
-                        <div class="head">
-                            <div class="tit">
-                                <p>代码</p>
-                                <a class="a del cir" onclick="
-                                    $('#options>.head>.tit>.a.del').hide();
-                                    $('#options>.head>.tit>.a.mul').addClass('del');
-                                    $('#oplist').addClass('del');">
-                                    <i class="bi bi-trash3"></i>
-                                </a>
-                                <a class="a sub cir" style="display: none;" onclick="
-                                    mostyle($('#style-add-key').val(),$('#style-add-value').val(),true,true);
-                                    $('#options>.head>.tit>.a.mul').removeClass('add');
-                                    $('#options>.head').removeClass('add');
-                                    setTimeout(() => {
-                                        $('#options>.head>.addform').remove();
-                                    }, 200);
-                                    $(this).hide();
-                                    $('#options>.head>.tit>.a.del').show();">
-                                    <i class="bi bi-check-lg"></i>
-                                </a>
-                                <a class="a mul cir" onclick="if($(this).hasClass('add')){
-                                    $(this).removeClass('add');
-                                    $('#options>.head').removeClass('add');
-                                    setTimeout(() => {
-                                        $('#options>.head>.addform').remove();
-                                    }, 200);
-                                    $('#options>.head>.tit>.a.sub').hide();
-                                    $('#options>.head>.tit>.a.del').show();
-                                }else if($(this).hasClass('del')){
-                                    $(this).removeClass('del');
-                                    $('#oplist').removeClass('del');
-                                    $('#options>.head>.tit>.a.del').show();
-                                }else{
-                                    $('#options>.head')[0].innerHTML+='<div class=\'addform\'><input class=\'inp\' id=\'style-add-key\' placeholder=\'键\'><input class=\'inp\' id=\'style-add-value\' placeholder=\'值\' onkeyup=\'if(event.keyCode==13)$(&quot;#options>.head>.tit>.a.sub&quot;).click()\'></div>';
-                                    $('#options>.head').addClass('add');
-                                    $('#options>.head>.tit>.a.sub').show();
-                                    $('#options>.head>.tit>.a.mul').addClass('add');
-                                    $('#options>.head>.tit>.a.del').hide();
-                                }">
-                                    <i class="bi bi-plus-lg"></i>
-                                </a>
-                            </div>
-                        </div>
-                        <div id="oplist"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="/lib/edit.js"></script>
-    <script>
-        gotopage(0);
+    <script src="/lib/jq.min.js"></script><script>
+        file={{ file|safe }};
+        pg={{ pgid|safe }};
+        stylem={{ stylem|safe }};
+        props={{ props|safe }};
+        tags={{ tags|safe }};
     </script>
+    <div id="mainpage">
+        <div class="bar">
+            <div id="bar"></div>
+        </div>
+        <div class="ctr">
+            <iframe id="page" src="/render/{{ pgid }}">
+
+            </iframe>
+            <div id="toolbar">
+                <div class="b ac select-then-enable">
+                    <div class="a bt l mv">
+                        <i class="bi bi-copy"></i>
+                        <span>复制</span>
+                    </div>
+                    <div class="a bt l dl" onclick="delEle(selected)">
+                        <i class="bi bi-trash3"></i>
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="b zoom">
+                    <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())-10);zoompage($('#zoompage').val())">
+                        <i class="bi bi-zoom-out"></i>
+                    </div>
+                    <input id="zoompage" type="range" min="20" max="200" step="10" value="100" oninput="zoompage(this.value);">
+                    <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())+10);zoompage($('#zoompage').val())">
+                        <i class="bi bi-zoom-in"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="p1">
+                <div id="animation">
+
+                </div>
+                <div id="tools">
+                    <div class="group big">
+                        <div class="fun">
+                            <div class="ts big" onclick="addEle('text')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-textarea-t" viewBox="0 0 16 16">
+                                    <path
+                                        d="M1.5 2.5A1.5 1.5 0 0 1 3 1h10a1.5 1.5 0 0 1 1.5 1.5v3.563a2 2 0 0 1 0 3.874V13.5A1.5 1.5 0 0 1 13 15H3a1.5 1.5 0 0 1-1.5-1.5V9.937a2 2 0 0 1 0-3.874V2.5zm1 3.563a2 2 0 0 1 0 3.874V13.5a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V9.937a2 2 0 0 1 0-3.874V2.5A.5.5 0 0 0 13 2H3a.5.5 0 0 0-.5.5v3.563zM2 7a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm12 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                                    <path
+                                        d="M11.434 4H4.566L4.5 5.994h.386c.21-1.252.612-1.446 2.173-1.495l.343-.011v6.343c0 .537-.116.665-1.049.748V12h3.294v-.421c-.938-.083-1.054-.21-1.054-.748V4.488l.348.01c1.56.05 1.963.244 2.173 1.496h.386L11.434 4z" />
+                                </svg>
+                                <span>文本</span>
+                            </div>
+                            <div class="ts big" onclick="addEle('shape')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-bounding-box-circles" viewBox="0 0 16 16">
+                                    <path
+                                        d="M2 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM0 2a2 2 0 0 1 3.937-.5h8.126A2 2 0 1 1 14.5 3.937v8.126a2 2 0 1 1-2.437 2.437H3.937A2 2 0 1 1 1.5 12.063V3.937A2 2 0 0 1 0 2zm2.5 1.937v8.126c.703.18 1.256.734 1.437 1.437h8.126a2.004 2.004 0 0 1 1.437-1.437V3.937A2.004 2.004 0 0 1 12.063 2.5H3.937A2.004 2.004 0 0 1 2.5 3.937zM14 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM2 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm12 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                                </svg>
+                                <span>方块</span>
+                            </div>
+                        </div>
+                        <span>常用</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="css">
+            <div class="p1">
+                <div id="prop">
+                    <div class="title">属性</div>
+                    <div class="props">
+                    </div>
+                </div>
+                <div id="tags">
+                    <div class="title">标签</div>
+                    <!-- <p style="font-size: small;margin: 0;">点击以添加标签至选中元素。点击标签右部按钮以编辑标签样式。标签样式将用于所有设此标签之元素，但元素样式恒优先于标签样式。</p> -->
+                    <div class="tag-list"></div>
+                    <div class="tag-actions">
+                        <button onclick="$('#addtag').show();">添加</button>
+                        <button onclick="manageTag()">删除</button>
+                    </div>
+                </div>
+            </div>
+            <div id="sti">
+                <!-- <div class="style-selector">
+                    <button class="active" data-target="element">當前元素</button>
+                    <button data-target="tag">標籤樣式</button>
+                </div> -->
+            </div>
+            <div id="sty">
+            </div>
+        </div>
+    </div>
+    <div id="addstyle" class="modal">
+        <div class="tit">
+            
+            <span class="key"></span>
+            <span class="key2"></span>
+        </div>
+        <div class="body">
+            <div class="value"></div>
+        </div>
+        <button class="ok">确定</button>
+        <button onclick="$('.modal').hide()" class="cancel">取消</button>
+    </div>
+    <div id="addtag" class="modal">
+        <span class="tit">添加标签</span>
+        <div class="body">
+            <input type="text" class="tag" />
+        </div>
+        <button class="ok" onclick="addNewTag($('#addtag>.body>.tag').val())">确定</button>
+        <button onclick="$('.modal').hide()" class="cancel">取消</button>
+    </div>
+    <div id="selectmenu"></div>
+    <script src="/lib/edit.js"></script>
+    <!-- <script>
+        gotopage(0);
+    </script> -->
 </body>
+
 </html>

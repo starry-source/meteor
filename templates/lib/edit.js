@@ -1,424 +1,479 @@
-let np=-1,ni=-1,scx=1;
+let selected=null;
+let selectedIndex=null;
 
-let mded=false,ndic;
 
-let cs={
-    position:{
-        'static':'铺排',
-        'absolute':'绝对于页面',
-        'fixed':'绝对于屏幕',
-        'relative':'相对',
-        'sticky':'粘滞',
+function copy(obj){
+    return JSON.parse(JSON.stringify(obj));
+}
+
+/* 文件数据模板，供参考
+styleM = {
+    'text': {
+        'name':'文本样式',
+        'font': {
+            'css': 'font-family: \'{value}\';',
+            'name': '字体',
+            'type': 'select',
+            'options': [
+                {'name': '预设', 'value': 'inherit'},
+                {'name': '宋体', 'value': '宋体'},
+                {'name': '仿宋', 'value': '仿宋'}
+            ]
+        },
+        'fontSize': {
+            'css': 'font-size: {value}px;',
+            'name': '字体大小',
+            'type': 'number',
+        },
+        'color': {
+            'css': 'color: {value};',
+            'name': '颜色',
+            'type': 'color'
+        },
+        'textAlign': {
+            'css': 'text-align: {value};',
+            'name': '对齐方式',
+            'type': 'select',
+            'options': [
+                {'name': '靠左', 'value': 'left'},
+                {'name': '置中', 'value': 'center'},
+                {'name': '靠右', 'value': 'right'}
+            ]
+        }
     },
-    display:{
-        'block':'矩块',
-        'inline':'行内内联',
-        'inline-block':'行内矩块',
-        'flex':'并列',
-        'inline-flex':'行内并列',
-        'none':'隐藏'
-    },
-    'text-align':{
-        'center':'居中',
-        'left':'左',
-        'right':'右',
-        'start':'前',
-        'end':'后',
-    }
-}
-for (const box of document.querySelectorAll('.chsbox:not(.part)')) {
-    const th=cs[box.classList[1]];
-    for(const i in th){
-        box.innerHTML+=`<a class="a" value="${i}" onclick="
-        mostyle('${box.classList[1]}','${i}');closechs();">${th[i]}</a>`
-    }
-}
-
-let cspart={
-    unit:{
-        'px':'px(像素)',
-        '%':'%',
-        'em':'em',
-        'rem':'rem',
-        'cm':'cm(厘米)',
-        'mm':'mm(毫米)',
-        '':'无',
-    }
-}
-
-
-for (const box of document.querySelectorAll('.chsbox.part')) {
-    const th=cspart[box.classList[1]];
-    for(const i in th){
-        box.innerHTML+=`<a class="a" value="${i}" 
-        onclick="$('.chsbtn.show>span').text('${i}');
-        mostyle($('.chsbtn.show').attr('stylekey'),$($('.chsbtn.show').attr('valpath')).val()+'${i}');
-        closechs()">${th[i]}</a>`
-    }
-}
-
-
-function stop(e){
-    e.stopPropagation();
-    return false;
-}
-
-function disop() {
-    clrop();
-    $('#edit,#options').addClass('disabled');
-    $('#toolbar>.b.ac').addClass('disabled');
-}
-function ablop() {
-    $('#edit,#options').removeClass('disabled');
-    $('#toolbar>.b.ac').removeClass('disabled');
-}
-
-function getele(s,all=false) {
-    let page = document. getElementById('page');
-    let doc = (page.contentDocument || page.contentWindow);
-    if (doc.document)doc=doc.document;
-    if(all)
-        return doc.querySelectorAll(s);
-    else
-        return doc.querySelector(s);
-}
-
-function gotopage(pid) {
-    if(pid==np){
-        document.getElementById('page').contentWindow.location.reload();
-    }else{
-        $('#page').attr('src','/edit/'+pid);
-        ni=-1;
-        if(mded)
-            focpage();
-        else{
-            disop();
+    'shape': {
+        'name':'形状样式',
+        'bgcolor': {
+            'css': 'background-color: {value};',
+            'name': '背景色',
+            'type': 'color'
+        },
+        'bdrd': {
+            'css': 'border-radius: {value}px;',
+            'name': '圆角',
+            'type': 'number',
         }
     }
-    np=pid;
-    // if(!force)
-    // if(mvis)if(pid!=np)return;
-    // $.get('/edit/'+pid).then(r=>{
-    //     $('#page').html(r);
-    //     if(np!=pid){
-    //         ni=-1;
-    //         if(mded)
-    //             focpage();
-    //         else{
-    //             disop();
-    //         }
-    //     }
-    //     np=pid;
-    //     if(mvis){
-    //         let ele=$(`#page>div .ele-${ni}`);
-    //         $('#move').css('left',ele.offset().left);
-    //         $('#move').css('top',ele.offset().top);
-    //         $('#move').css('width',ele[0].offsetWidth*0.6);
-    //         $('#move').css('height',ele[0].offsetHeight*0.6);
-    //     }
-    // });
+} 
+
+htmlM={
+    'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}" style="{style}">{e[prop][content]}</span>',
+    'shape': '<div id="ele-{e[id]}" class="element {tags} element-shape" data-id="{e[id]}" style="{style}"></div>',
 }
 
+# 文件数据
+file = {
+    'background': '#ffffff',
+    'elements': [{
+        'id': str(uuid.uuid4()),
+        'type': 'text',
+        'prop':{
+            'content':'你好'
+        },
+        'x': 100,
+        'y': 100,
+        'width': 200,
+        'height': 50,
+        'style': {
+            'text.fontSize':30,
+            'text.color':'#000000',
+        },
+        'tags': []
+    }]
+}
 
-function rlen(jq,vl) {
-    if(vl==''){
-        $(jq+'>.inp').attr('type','number');
-        $(jq+'>.inp').val('');
-        $(jq+'>.chsbtn>span').text('');
-        return;
-    }
-    let tmp='',ret='',f=false;
-    for (const i of vl) {
-        if(isNaN(i)){
-            if(!f){
-                $(jq+'>.inp').attr('type','text');
-                $(jq+'>.inp').val(vl);
-                $(jq+'>.chsbtn>span').text('');
-            }
-            tmp+=i;
-            f=true;
-        }else{
-            if(f){
-                $(jq+'>.inp').attr('type','text');
-                $(jq+'>.inp').val(vl);
-                $(jq+'>.chsbtn>span').text('');
-            }
-            ret+=i;
+tags={
+    'title': {
+        'prop':{
+            'name':'标题'
+        },
+        'style': {
+            'text.fontSize': 48,
+            'text.color': '#000000',
+            'text.textAlign': 'center',
         }
     }
-    if('^px$ ^%$ ^em$ ^rem$ ^cm$ ^mm$'.includes(`^${tmp}$`)){
-        $(jq+'>.inp').attr('type','number');
-        $(jq+'>.inp').val(Number(ret));
-        $(jq+'>.chsbtn>span').text(tmp);
-        return;
+}
+
+props={
+    'text':{
+        'content':{
+            'name':'文本',
+            'type':'text'
+        }
+    },
+    'shape':{}
+}
+    */
+
+
+function updatePosition(id, x, y) {
+    file.elements.forEach(element => {
+        if (element.id == id) {
+            element.x = x;
+            element.y = y;
+        }
+    });
+    $.post(`/api/${pg}/update`, JSON.stringify(file));
+
+}
+function updateSize(id, w,h) {
+    file.elements.forEach(element => {
+        if (element.id == id) {
+            element.height = h;
+            element.width=w;
+        }
+    });
+    $.post(`/api/${pg}/update`, JSON.stringify(file));
+
+}
+
+function updateElementsOrder(elementid, type) {
+    const elementIndex = file.elements.findIndex(element => element.id === elementid);
+    if (elementIndex === -1) {
+        // 如果找不到元素，返回错误
+        throw new Error("Element not found");
     }
-    $(jq+'>.inp').attr('type','text');
-    $(jq+'>.inp').val(vl);
-    $(jq+'>.chsbtn>span').text('');
-}
+    // 获取元素并从原位置删除
+    const [element] = file.elements.splice(elementIndex, 1);
 
-function dealstyle(r) {
-    $('#bs>.ops>.opo>.h>.inp').val(r.height||'');
-    $('#bs>.ops>.opo>.w>.inp').val(r.width||'');
-    $('#bs>.ops>.ft>.fam>.inp').val(r['font-family']||'');
-    $('#bs>.ops>.ft>.color>.inp').val(r['color']||'');
-    $('#bs>.ops>.ft>.chsbtn.text-align>span').text(cs['text-align'][r['text-align']]||r['text-align']||'文字位置');
-    $('#edlist>.appr>.bgcolor>.inp').val(r['background-color']||'');
-}
-
-function clrop() {
-    $('#edlist>.pg.posi').removeClass('fcpg');
-    $('#edlist>.pg.prop').html('');
-    $('#oplist').html('');
-
-    $('#bs>.chsbtn.position>span').text('位置');
-    $('#bs>.chsbtn.display>span').text('布局');
-    $('#bs>.ops>.opo>.t>.inp').val('');
-    $('#bs>.ops>.opo>.r>.inp').val('');
-    $('#bs>.ops>.opo>.l>.inp').val('');
-    $('#bs>.ops>.opo>.b>.inp').val('');
-    $('#bs>.ops>.opo>.h>.inp').val('');
-    $('#bs>.ops>.opo>.w>.inp').val('');
-    $('#bs>.ops>.ft>.size>.inp').val('');
-    $('#bs>.ops>.ft>.size>.chsbtn>span').text('');
-    $('#bs>.ops>.ft>.fam>.inp').val('');
-    $('#bs>.ops>.ft>.color>.inp').val('');
-    $('#bs>.ops>.ft>.chsbtn.text-align>span').text('位置');
-    $('#edlist>.appr>.bgcolor>.inp').val('');
+    // 根据type插入元素
+    switch (type) {
+        case 'top':
+            file.elements.push(element);
+            break;
+        case 'up':
+            if (elementIndex < file.elements.length) {
+                file.elements.splice(elementIndex + 1, 0, element);
+            } else {
+                file.elements.push(element);
+            }
+            break;
+        case 'down':
+            if (elementIndex > 0) {
+                file.elements.splice(elementIndex - 1, 0, element);
+            } else {
+                file.elements.unshift(element);
+            }
+            break;
+        case 'bottom':
+            file.elements.unshift(element);
+            break;
+    }
+    
+    // 更新服务器
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        $('#page').attr('src', $('#page').attr('src'));
+        select(selected);
+        $('#page').on('load',()=>{
+            $('#page')[0].contentWindow.selectElement('#ele-'+selected);
+            $('#page').off('load');
+        });
+    });
     
 }
 
-function beclicked(itemid,force=true) {
-    if(itemid==-1){
-        focpage();
+function select(id){
+    selected=id;
+    selectedIndex=null;
+    if(id==null){
+        $('.select-then-enable.able').removeClass('able');
+        $('#prop>.props').html('');
+        $('#sty').html('');
+
         return;
     }
-    // if(!force)
-    if(ni!=itemid)
-    if(mvis)return;
-    if(!mded)return;
-
-    ablop();
-    $.getJSON('/edit/'+np+'/get/'+itemid).then(r=>{
-        // console.log(cs.position[r.position]);
-        $('#edlist>.pg.prop').html('');
-        for(let i in r.prop){
-            $('#edlist>.pg.prop')[0].innerHTML+=`<div class="op">
-            <span>${i}</span>
-            <input class="inp" type="text" value="${r.prop[i]}" onblur="moprop('${i}',this.value)" onkeyup="if(event.keyCode==13)moprop('${i}',this.value)" />
-            </div>`;
-        }
-        if($.isEmptyObject(r)){
-            $('#edlist>.pg.prop').html('<i>無</i>');
-        }
-        ndic=r;
-        r=r.style;
-        $('#bs>.chsbtn.position>span').text(cs.position[r.position]||r.position||'位置');
-        $('#bs>.chsbtn.display>span').text(cs.display[r.display]||r.display||'布局');
-        $('#bs>.ops>.opo>.t>.inp').val(r.top||'');
-        $('#bs>.ops>.opo>.r>.inp').val(r.right||'');
-        $('#bs>.ops>.opo>.l>.inp').val(r.left||'');
-        $('#bs>.ops>.opo>.b>.inp').val(r.bottom||'');
-        // $('#bs>.ops>.om>.t>.inp').val(r['margin-top']||'');
-        // $('#bs>.ops>.om>.r>.inp').val(r['margin-right']||'');
-        // $('#bs>.ops>.om>.b>.inp').val(r['margin-bottom']||'');
-        // $('#bs>.ops>.om>.l>.inp').val(r['margin-left']||'');
-        rlen('#bs>.ops>.ft>.size',r['font-size']||'');
-        dealstyle(r);
-        // 样式卡
-        $('#oplist').html('');
-        for(let i in r){
-            $('#oplist')[0].innerHTML+=`<div class="op">
-            <p>${i}</p>
-            <input class="inp" type="text" value="${r[i]}" onblur="mostyle('${i}',this.value,true,true)" onkeyup="if(event.keyCode==13)mostyle('${i}',this.value,true,true)" />
-            <a class="a cir dele" onclick="destyle('${i}')"><i class="bi bi-trash3"></i></a></div>`;
-        }
-        if($.isEmptyObject(r)){
-            $('#oplist').html('<i>無</i>');
-        }
-        ni=itemid;
-        $('#edlist>.posi').removeClass('fcpg');
-    });
-}
-function focpage() {
-    if(mvis)return;
-    if(!mded)return;
-    ablop()
-    $.getJSON('/edit/'+np+'/getpg').then(r=>{
-        clrop()
-        $('#edlist>.pg.prop').html('<i>無</i>');
-        $('#edlist>.posi').addClass('fcpg');
-        rlen('#bs>.ops>.ft>.size',r['font-size']||'');
-        dealstyle(r);
-
-        // 样式卡
-        $('#oplist').html('');
-        for(let i in r){
-            $('#oplist')[0].innerHTML+=`<div class="op">
-            <p>${i}</p>
-            <input class="inp" type="text" value="${r[i]}" onblur="mostyle('${i}',this.value,true,true)" onkeyup="if(event.keyCode==13)mostyle('${i}',this.value,true,true)" />
-            <a class="a cir dele" onclick="destyle('${i}')"><i class="bi bi-trash3"></i></a></div>`;
-        }
-        if(r==$.isEmptyObject(r)){
-            $('#oplist').html('<i>無</i>');
-        }
-        ni=-1;
-    });
-}
-
-
-function mostyle(k,v,f=true,chart=false){
-    if(!chart){
-        console.log('hi');
-        if(v==''){
-            destyle(k);
-            return;
-        }
-    }
-    $.get('/edit/'+np+'/set/'+ni+'/'+encodeURIComponent(k)+'/'+encodeURIComponent(v)).then(r=>{
-        if(r=='well'){
-            if(f){
-                gotopage(np);
-                if(ni==-1)
-                    focpage();
-                else
-                    beclicked(ni);
-            }
-        }
-    });
-}
-function moprop(k,v){
-    $.get('/edit/'+np+'/setp/'+ni+'/'+encodeURIComponent(k)+'/'+encodeURIComponent(v)).then(r=>{
-        if(r=='well'){
-            gotopage(np);
-            beclicked(ni);
-        }
-    });
-}
-
-function destyle(k,f=true){
-    $.get('/edit/'+np+'/del/'+ni+'/'+encodeURIComponent(k)).then(r=>{
-        if(f){
-            gotopage(np);
-            beclicked(ni)
-        }
-    // $('#options>.head>.tit>.a.mul').removeClass('del');
-    // $('#oplist').removeClass('del');
-    // $('#options>.head>.tit>.a.del').show();
-    });
-}
-
-function addEle(name) {
-    if(mvis)return;
-    $.get('/edit/'+np+'/add/'+encodeURIComponent(name)).then(r=>{
-        gotopage(np);
-        focpage();
-    })
-}
-
-function delEle() {
-    if(mvis)return;
-    $.get('/edit/'+np+'/dele/'+ni).then(r=>{
-        // $('#page').html(r);
-        gotopage(np);
-        focpage();
-    });
-}
-
-function closechs() {
-    $('.chsbox.show0').removeClass('show');
-    $('.chsbox.show0').removeClass('show0');
-    $('.chsbtn.show').removeClass('show');
-}
-function openchs(btn,cl) {
-    if($(btn).hasClass('show')){
-        closechs();
-    }else{
-        closechs();
-        let tmp=$('.chsbox.'+cl);
-        tmp.css('left',btn.offsetLeft);
-        tmp.css('top',btn.offsetTop+btn.offsetHeight+4);
-        tmp.css('right','unset');
-        tmp.css('height','unset');
-        tmp.addClass('show0');
-        if(tmp[0].offsetLeft+tmp[0].offsetWidth+5>window.innerWidth){
-            tmp.css('left','unset');
-            tmp.css('right',5);
-        }
-        if(tmp[0].offsetTop+tmp[0].offsetHeight+5>window.innerHeight){
-            tmp.css('height',window.innerHeight-tmp[0].offsetTop-5);
-        }
-        tmp.addClass('show');
-        $(btn).addClass('show');
-    }
-}
-
-let mvdx,mvdy,mvis;
-function stmove() {
-    if(ni==-1)return;
-    if(mvis){
-        mvis=false;
-        $('#toolbar>.b.ac>.mv').removeClass('sel');
-        $('#move').removeClass('show');
-        $('#page').removeClass('disable');
-        $('#toolbar>.b.mded,#toolbar>.b.ac>.dl').removeClass('disabled');
-        return;
-    }
-    $('#toolbar>.b.ac>.mv').addClass('sel');
-    $('#page').addClass('disable');
+    $('.select-then-enable').addClass('able');
     
-    let ele=$(getele('.ele-'+ni));
-    $('#move').css('left',ele.offset().left+$('#page').offset().left);
-    $('#move').css('top',ele.offset().top+$('#page').offset().top);
-    $('#move').css('width',ele[0].offsetWidth*scx);
-    $('#move').css('height',ele[0].offsetHeight*scx);
-    $('#move').addClass('show');
-    mvis=true;
-    $('#toolbar>.b.mded,#toolbar>.b.ac>.dl').addClass('disabled');
-}
-function mvmd(e){
-    mvdx=e.offsetX;
-    mvdy=e.offsetY;
-    document.addEventListener('mousemove',mvev);
-    document.addEventListener('mouseup',mvmu);
-}
-function mvev(e) {
-    $('#move').css('left',e.clientX-mvdx);
-    $('#move').css('top',e.clientY-mvdy);
-}
-function mvmu(e) {
-    ex=e.clientX,ey=e.clientY;
-    document.removeEventListener('mousemove',mvev);
-    document.removeEventListener('mouseup',mvmu);
-    $('#move').css('left',ex-mvdx);
-    $('#move').css('top',ey-mvdy);
-    destyle('right',false);
-    destyle('bottom',false);
-    mostyle('left',((ex-$('#page').offset().left-mvdx)/scx).toFixed(2).toString()+'px',false);
-    mostyle('top',((ey-$('#page').offset().top-mvdy)/scx).toFixed(2).toString()+'px',false);
-    if(ndic.style.position){
-        if(ndic.style.position=='absolute' || ndic.style.position=='fixed'){
-            gotopage(np);
-            beclicked(ni)
-            return;
-        }
-    }
-    mostyle('position','absolute',false);
-    gotopage(np);
-    beclicked(ni)
+    file.elements.forEach(e=>{
+        if(e.id!=id) return;
+        selectedIndex=file.elements.indexOf(e);
+        console.log(selected,selectedIndex);
+        loadprop(e, id);
+        loadstyle(e, id);
+        loadTags();
+    });
 }
 
-function editcnt(itemid,k,v){
-    if(mvis)return;
-    if(!mded){
-        return;
-        
+function loadprop(e, id, tag=false) {
+    $('#prop>.props').html('');
+    propedit = '';
+    let prop = copy(props[tag?'tag':e.type]);
+    for (let key in e.prop) {
+        prop[key].value = e.prop[key];
     }
-    if(itemid!=ni){
-        beclicked(itemid);
+    for (let key in prop) {
+        propedit += `<div class="form-group">
+                <label>${prop[key].name}</label>`;
+        if (prop[key].type == 'select') {
+            propedit += `<selectbox onclick="show(this)" class="form-control ${key}" onchange="setprop('${id}','${key}',this.value ${tag?',tag=true':''})">`;
+            prop[key].options.forEach(option => {
+                propedit += `<option value="${option.value}" ${prop[key].value == option.value ? 'selected' : ''}>${option.name}</option>`;
+            });
+            propedit += `</selectbox>`;
+        } else if (prop[key].type == 'number') {
+            propedit += `<input type="number" class="form-control ${key}" value="${prop[key].value}" onchange="setprop('${id}','${key}',this.value${tag?',tag=true':''})">`;
+        } else if (prop[key].type == 'text') {
+            propedit += `<input type="text" class="form-control ${key}" value="${prop[key].value}" onchange="setprop('${id}','${key}',this.value${tag?',tag=true':''})">`;
+        }
+        propedit += `</div>`;
     }
-    $('#editcnt>.win>.inp').val(v);
-    $('#editcnt>.win>div>.sub').attr('onclick',`moprop('${k}',$('#editcnt>.win>.inp').val());$('#editcnt').removeClass('show');`);
-    $('#editcnt').addClass('show');
-    $('#editcnt>.win>.inp').focus();
+    $('#prop>.props').html(propedit);
 }
+
+function loadstyle(e, id, tag=false) {
+    $('#sty').html(''); styleedit = '';
+    let style = copy(stylem);
+    for (let key in e.style) {
+        let k = key.split('.');
+        style[k[0]][k[1]].value = e.style[key];
+        style[k[0]][k[1]].set = true;
+    }
+    styleedit='<div class="menu list">';
+    for (let key in style){
+        styleedit+=`<a class="item ${key}" onclick="toggle_style_page('${key}');">${style[key].name}</a>`;
+    }
+    styleedit+='</div> <div class="page-container">';
+
+    for (let key in style) {
+        styleedit += `<div class="page ${key}">
+                <span class="tit">${style[key].name}</span>`;
+        for (let key2 in style[key]) {
+            if (key2 == 'name') continue;
+            styleedit += `<div class="form-group">
+                    <label>${style[key][key2].name}</label>`;
+            if (style[key][key2].set) {
+                console.log(key, key2);
+                if (stylem[key][key2].type == 'select') {
+                    styleedit += `<selectbox onclick="show(this)" class="form-control ${key2}" onchange="setstyle('${id}','${key}','${key2}',this.value${tag?',tag=true':''})">`;
+                    stylem[key][key2].options.forEach(option => {
+                        styleedit += `<option value="${option.value}" ${style[key][key2].value == option.value ? 'selected' : ''}>${option.name}</option>`;
+                    });
+                    styleedit += `</selectbox>`;
+                } else if (stylem[key][key2].type == 'color') {
+                    styleedit += `<input type="color" class="form-control ${key2}" value="${style[key][key2].value}" onchange="setstyle('${id}','${key}','${key2}',this.value${tag?',tag=true':''})">`;
+                } else if (stylem[key][key2].type == 'number') {
+                    styleedit += `<input type="number" class="form-control ${key2}" value="${style[key][key2].value}" onchange="setstyle('${id}','${key}','${key2}',this.value${tag?',tag=true':''})">`;
+                }
+                styleedit += `<button class="del" onclick="delstyle('${id}','${key}','${key2}'${tag?',tag=true':''})"><i class="bi bi-dash"></i></button>`;
+            } else {
+                styleedit += `<button class="add" onclick="addstyle('${id}','${key}','${key2}'${tag?',tag=true':''})"><i class="bi bi-plus"></i></button>`;
+            }
+
+            styleedit += `</div>`;
+        }
+        styleedit += `</div>`;
+    }
+    styleedit += `</div>`;
+    
+    $('#sty').html(styleedit);
+    toggle_style_page(Object.keys(style)[0]);
+}
+function toggle_style_page(page){
+    $('#sty>.menu>.item.show').removeClass('show');
+    $('#sty>.menu>.item.'+page).addClass('show');
+    $('#sty>.page-container>.page.show').removeClass('show');
+    $(`#sty>.page-container>.page.${page}`).addClass('show');
+}
+
+function loadTags(reload=false){
+    if(reload){
+        $.get(`/api/tags`).done(data=>{
+            tags=data;
+            loadTags();
+        });
+        return;
+    }
+    $('#tags>.tag-list').html('');
+    let tagsedit='';
+    for(let key in tags){
+        tagsedit+=`<div class="tag tag-${key} ${(selected!=null && file.elements[selectedIndex].tags.includes(key))?'active':''}"
+        onclick="addTagToElement('${key}');">
+
+            <span>${tags[key].prop.name}</span>
+            <button onclick="event.stopPropagation();selectTag('${key}')"><i class="bi bi-pen"></i></button>
+        </div>`;
+    }
+    $('#tags>.tag-list').html(tagsedit);
+}
+
+function selectTag(name){
+    loadprop(tags[name], name, tag=true);
+    loadstyle(tags[name], name, tag=true);
+}
+
+function addTagToElement(name){
+    if(selected==null)return;
+    let e=file.elements[selectedIndex];
+    if(e.tags.includes(name)){
+        e.tags.splice(e.tags.indexOf(name),1);
+    }else{
+        e.tags.push(name);
+    }
+
+
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        $('#page').attr('src', $('#page').attr('src'));
+        select(selected);
+        $('#page').on('load',()=>{
+            $('#page')[0].contentWindow.selectElement('#ele-'+selected);
+            $('#page').off('load');
+        });
+    });
+}
+
+function setprop(id,key,value,tag=false){
+    if(tag){
+        tags[id].prop[key]=value;
+        $.post(`/api/updatetag`, JSON.stringify(tags));
+        loadTags();
+        selectTag(id);
+        return;
+    }
+    file.elements.forEach(e=>{
+        if(e.id==id){
+            e.prop[key]=value;
+        }
+    });
+    $.post(`/api/${pg}/update`, JSON.stringify(file));
+    $('#page').attr('src', $('#page').attr('src'));
+    select(id);
+    $('#page').on('load',()=>{
+        $('#page')[0].contentWindow.selectElement('#ele-'+id);
+        $('#page').off('load');
+    });
+}
+
+function addstyle(id,key,key2,tag=false){
+    $('#addstyle').show();
+    $('#addstyle>.tit>.key').text(stylem[key].name);
+    $('#addstyle>.tit>.key2').text(stylem[key][key2].name);
+    $('#addstyle>.ok').click(()=>{setstyle(id,key,key2,$('#addstyle>.body>.value>*').val(),tag)});
+    if (stylem[key][key2].type == 'select') {
+        styleedit = `<selectbox onclick="show(this)" class="form-control ${key2}">`;
+        stylem[key][key2].options.forEach(option => {
+            styleedit += `<option value="${option.value}">${option.name}</option>`;
+        });
+        styleedit += `</selectbox>`;
+    } else if (stylem[key][key2].type == 'color') {
+        styleedit = `<input type="color" class="form-control ${key2}">`;
+    } else if (stylem[key][key2].type == 'number') {
+        styleedit = `<input type="number" class="form-control ${key2}">`;
+    }
+    $('#addstyle>.body>.value').html(styleedit);
+}
+
+function setstyle(id,key,key2,value,tag=false){
+    if(tag){
+        tags[id].style[key+'.'+key2]=value;
+        $.post(`/api/updatetag`, JSON.stringify(tags)).done(()=>{
+            loadTags();
+            selectTag(id);
+            $('#page').attr('src', $('#page').attr('src'));
+        });
+        $('#addstyle>.ok').off('click');
+        $('#addstyle').hide();
+        return;
+    }
+    file.elements.forEach(e=>{
+        if(e.id==id){
+            e.style[key+'.'+key2]=value;
+        }
+    });
+    console.log(file);
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        $('#page').attr('src', $('#page').attr('src'));
+        select(id);
+        $('#page').on('load',()=>{
+            $('#page')[0].contentWindow.selectElement('#ele-'+id);
+            $('#page').off('load');
+        });
+    });
+    $('#addstyle>.ok').off('click');
+    $('#addstyle').hide();
+}
+
+function delstyle(id,key,key2,tag=false){
+    if(tag){
+        delete tags[id].style[key+'.'+key2];
+        $.post(`/api/updatetag`, JSON.stringify(tags)).done(()=>{
+            loadTags();
+            selectTag(id);
+            $('#page').attr('src', $('#page').attr('src'));
+        });
+        return;
+    }
+    file.elements.forEach(e=>{
+        if(e.id==id){
+            delete e.style[key+'.'+key2];
+        }
+    });
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        $('#page').attr('src', $('#page').attr('src'));
+        select(id);
+        $('#page').on('load',()=>{
+            $('#page')[0].contentWindow.selectElement('#ele-'+id);
+            $('#page').off('load');
+        });
+    });
+}
+
+function addEle(type){
+    $.post(`/api/${pg}/add`, JSON.stringify({type:type})).done(data=>{
+        file=data;
+        $('#page').attr('src', $('#page').attr('src'));
+        $('#page').on('load',()=>{
+            $('#page')[0].contentWindow.selectElement('#ele-'+file.elements[file.elements.length-1].id);
+            $('#page').off('load');
+        });
+    });
+}
+
+function delEle(id){
+    $.post(`/api/${pg}/delete`, JSON.stringify({id:id})).done(data=>{
+        file=data;
+        $('#page').attr('src', $('#page').attr('src'));
+        select(null);
+    });
+}
+
+function addNewTag(name){
+    if(name in tags){
+        alert('Tag already exists');
+        return;
+    }
+    $('#addtag').hide();
+    $('#addtag>.body>.tag').val('');
+    $.post(`/api/addtag`, JSON.stringify({name:name})).done(data=>{
+        tags=data;
+        $('#page').attr('src', $('#page').attr('src'));
+    });
+}
+
+function show(selectbox){
+    if($(selectbox).hasClass('open')){
+        $(selectbox).removeClass('open');
+        $('#selectmenu').hide();
+    }else{
+        $('#selectmenu').html('');
+        $(selectbox).children().each((i,option)=>{
+            $('#selectmenu').append(`<div class="option ${option.selected?'selected':''}" onclick="selectOption('${option.value}');$(this).parent().find('.selected').removeClass('selected');$(this).addClass('selected');">${option.text}</div>`);
+        });
+        $('#selectmenu').css('top', $(selectbox).offset().top+$(selectbox).height()+15);
+        $('#selectmenu').css('left', $(selectbox).offset().left);
+        $('#selectmenu').show();
+        $(selectbox).addClass('open');
+    }
+}
+function selectOption(option){
+    $('selectbox.open').find('[selected]').removeAttr('selected');
+    $('selectbox.open').find(`[value=${option}]`).attr('selected','selected');
+    $('selectbox.open').val(option).change().removeClass('open');
+    $('#selectmenu').hide();
+}
+
+function zoompage(z){
+    $('#page').css('zoom',z/100);
+}
+
+loadTags(true);

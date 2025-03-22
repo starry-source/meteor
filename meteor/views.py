@@ -1,203 +1,256 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect as hrr
-from django.http import FileResponse,HttpResponse
 from django.http import JsonResponse as jsr
-from types import MappingProxyType as nd
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_sameorigin as xf_same
+import json, uuid
 
-f={
-    'data':[
-        {
-            'name':'甲',
-            'style':{
-                'width':'1920px',
-                'height':'1080px',
-                'background-color':'#fff',
-            },
-            'item':[
-                {
-                    'deled':False,
-                    'name':'text',
-                    'type':'span',
-                    'style':{'font-size':'50px',},
-                    'prop':{
-                        'cnt':'helloworld',
-                    },
-                }
+# 所有样式
+styleM = {
+    'text': {
+        'name':'文本样式',
+        'font': {
+            'css': 'font-family: \'{value}\';',
+            'name': '字体',
+            'type': 'select',
+            'options': [
+                {'name': '预设', 'value': 'inherit'},
+                {'name': '宋体', 'value': '宋体'},
+                {'name': '仿宋', 'value': '仿宋'}
+            ]
+        },
+        'fontSize': {
+            'css': 'font-size: {value}px;',
+            'name': '字体大小',
+            'type': 'number',
+        },
+        'color': {
+            'css': 'color: {value};',
+            'name': '颜色',
+            'type': 'color'
+        },
+        'textAlign': {
+            'css': 'text-align: {value};',
+            'name': '对齐方式',
+            'type': 'select',
+            'options': [
+                {'name': '靠左', 'value': 'left'},
+                {'name': '置中', 'value': 'center'},
+                {'name': '靠右', 'value': 'right'}
             ]
         }
-    ],
+    },
+    'shape': {
+        'name':'形状样式',
+        'bgcolor': {
+            'css': 'background-color: {value};',
+            'name': '背景色',
+            'type': 'color'
+        },
+        'bdrd': {
+            'css': 'border-radius: {value}px;',
+            'name': '圆角',
+            'type': 'number',
+        }
+    }
+} 
+
+htmlM={
+    'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}" style="{style}">{e[prop][content]}</span>',
+    'shape': '<div id="ele-{e[id]}" class="element {tags} element-shape" data-id="{e[id]}" style="{style}"></div>',
 }
 
-b={
-    'p':'<p name="{a[name]}" class="ele-{i}" style="{style}" onclick="window.top.beclicked({i});window.top.stop(event)" ondblclick="window.top.editcnt({i},\'cnt\',\'{a[prop][cnt]}\');window.top.stop(event)">{a[prop][cnt]}</p>',
-    'span':'<span name="{a[name]}" class="ele-{i}" style="{style}" onclick="window.top.beclicked({i});window.top.stop(event)" ondblclick="window.top.editcnt({i},\'cnt\',\'{a[prop][cnt]}\');window.top.stop(event);">{a[prop][cnt]}</span>',
-    'div':'<div name="{a[name]}" class="ele-{i}" style="{style}" onclick="window.top.beclicked({i});window.top.stop(event)"></div>',
-}
-
-op={
-    'p':{
-        'deled':False,
-        'prop':{
-            'cnt':'文段',
-        },
-        'style':{
-            'display':'block',
-            'position':'relative',
-        }
-    },
-    'span':{
-        'deled':False,
-        'prop':{
-            'cnt':'文本',
-        },
-        'style':{
-            'display':'block',
-            'position':'relative',
-        }
-    },
-    'div':{
-        'deled':False,
-        'prop':{
-        },
-        'style':{
-            'display':'block',
-            'position':'relative',
-            'height':'20px',
-            'width':'20px',
-            'background-color':'#3a75dc'
+# 文件数据
+f = {
+    'name': '示例',
+    'height': 1080,
+    'width': 1920,
+    'pages': [{
+        'background': '#ffffff',
+        'elements': [{
+            'id': str(uuid.uuid4()),
+            'type': 'text',    # text 或 shape
+            'prop':{
+                'content':'你好'
+            },
+            'x': 100,
+            'y': 100,
+            'width': 200,
+            'height': 50,
+            'style': {
+                'text.fontSize':30,
+                'text.color':'#000000',
+            },
+            'tags': []
+        }]
+    }],
+    'tags': {
+        'title': {
+            'prop':{
+                'name':'标题'
+            },
+            'style': {
+                'text.fontSize': 48,
+                'text.color': '#000000',
+                'text.textAlign': 'center',
+            }
         }
     }
 }
-op=nd(op)
 
-# edps=[
-#     {
-#         'name':'定位方式',
-#         'code':'position',
-#         'type':'choose',
-#         'op':[
-#             {
-#                 'name':'默认铺放',
-#                 'code':'static',
-#                 'reldel':
-#             },
-#             {
-#                 'name':'页面绝对位置',
-#                 'code':'absolute'
-#             },
-#             {
-#                 'name':'屏幕绝对位置',
-#                 'code':'fixed'
-#             },
-#             {
-#                 'name':'页面相对位置',
-#                 'code':'relative'
-#             },
-#             {
-#                 'name':'粘滞',
-#                 'code':'sticky'
-#             },
-#         ]
-#     },
-#     {
-#         'name':'横左坐标',
-#         'code':'left',
-#         'type':'length',
-#     },
-#     {
-#         'name':'纵上坐标',
-#         'code':'top',
-#         'type':'length',
-#     },
-# ]
+props={
+    'tag':{
+        'name':{
+            'name':'标签名称',
+            'type':'text',
+        }
+    },
+    'text':{
+        'content':{
+            'name':'文本',
+            'type':'text'
+        }
+    },
+    'shape':{}
+}
 
-def rendcss(c):
-    ret=''
-    for i in c:
-        ret+=f'{i}:{c[i]};'
+def getnewele(type):
+    allele={
+        'text':{
+            'type':'text',
+            'prop':{
+                'content':'新文本'
+            },
+            'x':100,
+            'y':100,
+            'width':200,
+            'height':50,
+            'style':{
+                'text.fontSize':30,
+                'text.color':'#000000',
+            },
+            'tags':[]
+        },
+        'shape':{
+            'type':'shape',
+            'prop':{},
+            'x':100,
+            'y':100,
+            'width':100,
+            'height':50,
+            'style':{
+                'shape.bgcolor':'#000000',
+                'shape.bdrd':0,
+            },
+            'tags':[]
+        }
+    }
+    ret=allele[type]
+    ret['id']=str(uuid.uuid4())
     return ret
 
 def index(req):
     return render(req,'meteor/index.html')
 
-def edit(req):
+def edit(req,pg):
     return render(req,'meteor/edit.html',{
-        'name':'new',
-        'file':f
+        'pgid':pg,
+        'file':f['pages'][int(pg)],
+        'stylem':styleM,
+        'props':props,
+        'tags':f['tags']
     })
 
 @xf_same
-def rendpage(req,pid):
-    pid=int(pid)
-    p=f['data'][pid]['item']
-    ret=f'<html style="{rendcss(f["data"][pid]["style"])}" onclick="window.top.focpage()">'
-    idx=0
-    for i in p:
-        if i['deled']:
-            idx+=1
-            continue
-        ret+=b[i["type"]].format(a=i,style=rendcss(i["style"]),i=idx)
-        idx+=1
-    return HttpResponse(ret)
-
-def rendop(req,pid,iid):
-    # ret=''
-    # st=
-    # for i in st:
-    #     ret+=f'''<div class="op"><p>{i}</p><input class="inp" type="text" value="{st[i]}" onblur="mostyle(\'{i}\',this.value)" onkeyup="if(event.keyCode==13)mostyle(\'{i}\',this.value)" />
-    # <a class="a cir dele" onclick="destyle('{i}')"><i class="bi bi-trash3"></i></a></div>'''
-    return jsr(f['data'][int(pid)]['item'][int(iid)])
-
-def rendopp(req,pid):
-    # ret=''
-    return jsr(f['data'][int(pid)]['style'])
-
-
-def setop(req,pid,iid,k,v):
-    if iid=='-1':
-        f['data'][int(pid)]['style'][k]=v
-    else:
-        f['data'][int(pid)]['item'][int(iid)]['style'][k]=v
-    return HttpResponse('well')
-
-def setpr(req,pid,iid,k,v):
-    print(f['data'][0])
-    if iid=='-1':
-        f['data'][int(pid)]['prop'][k]=v
-    else:
-        f['data'][int(pid)]['item'][int(iid)]['prop'][k]=v
-    return HttpResponse('well')
-
-def addele(req,pid,eln):
-    nel={
-        'name':'ele'+str(len(f['data'][int(pid)]['item'])),
-        'type':eln,
-        'style':dict(),
-        # **dict(op[eln])
-    }
-    for i in op[eln]:
-        if type(op[eln][i])==dict:
-            nel[str(i)]=dict(op[eln][i])
-        else:
-            nel[str(i)]=op[eln][i]
+def render_page(req,pg):
+    html = ''
+    i=0
+    for element in f['pages'][int(pg)]['elements']:
+        i+=1
+        # 复制样式
+        style=dict(element['style'])
+        
+        # 生成 css
+        style_str = f'''
+            left: {element['x']}px;
+            top: {element['y']}px;
+            width: {element['width']}px;
+            height: {element['height']}px;
+            z-index: {i};
+        '''
+        style_str += ''.join([
+            ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
+            .format(value=v)
+            for k, v in style.items()
+        ])
             
-    # nel.update(dict(op[eln]))
-    # print(op)
-    f['data'][int(pid)]['item'].append(nel)
-    print(f['data'][0])
-    return rendpage(req,pid)
+        html += htmlM[element['type']].format(e=element, tags=' ele-tag-'.join(['']+element.get('tags', [])), style=style_str)
+    
+    tagscss=''
+    for tag in f['tags']:
+        tagscss+='.ele-tag-'+tag+'{'+(''.join([
+            ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
+            .format(value=v)
+            for k, v in f['tags'][tag]['style'].items()
+        ]))+'}'
+    return render(req, 'meteor/page.html', {
+        'background': f['pages'][0]['background'],
+        'elements_html': html,
+        'tagscss':tagscss
+    })
 
-def delele(req,pid,iid):
-    f['data'][int(pid)]['item'][int(iid)]['deled']=True
-    return rendpage(req,pid)
+# def get_styles(req):
+#     return jsr({
+#         'configs': styleM,
+#         'tags': f['tags']
+#     })
 
-def delop(req,pid,iid,k):
-    try:
-        if iid=='-1':
-            del f['data'][int(pid)]['style'][k]
-        else:
-            del f['data'][int(pid)]['item'][int(iid)]['style'][k]
-    except KeyError:
-        pass
-    return rendpage(req,pid)
+
+def add_element(req,pg):
+    if req.method == 'POST':
+        data = json.loads(req.body.decode())
+        f['pages'][int(pg)]['elements'].append(getnewele(data['type']))
+        return jsr(f['pages'][int(pg)])
+    return jsr({'status': 'error'})
+
+def delete_element(req,pg):
+    if req.method == 'POST':
+        data = json.loads(req.body.decode())
+        f['pages'][int(pg)]['elements']=[ele for ele in f['pages'][int(pg)]['elements'] if ele['id']!=data['id']]
+        return jsr(f['pages'][int(pg)])
+    return jsr({'status': 'error'})
+
+@csrf_exempt
+def update_file(req,pg):
+    # print(req.body.decode('utf8'))
+    if req.method == 'POST':
+        global f
+        data = json.loads(req.body.decode())
+        f['pages'][int(pg)]=data
+        return jsr({'status': 'ok'})
+    return jsr({'status': 'error'})
+
+def update_tag(req):
+    if req.method == 'POST':
+        global f
+        data = json.loads(req.body.decode())
+        f['tags']=data
+        return jsr({'status': 'ok'})
+    return jsr({'status': 'error'})
+
+def get_tags(req):
+    return jsr(f['tags'])
+
+def add_tag(req):
+    if req.method == 'POST':
+        global f
+        data = json.loads(req.body.decode())
+        if data['name'] not in f['tags']:
+            f['tags'][data['name']]={
+                'prop':{
+                    'name':data['name']
+                },
+                'style':{
+                }
+            }
+            return jsr({'status': 'ok'})
+    return jsr({'status': 'error'})

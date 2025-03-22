@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root{
+            background: #eee;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            width: 1920px;
+            height: 1080px;
+            background: {{ background }};
+        }
+        .element {
+            position: absolute !important;
+            cursor: default;
+            user-select: none;
+            min-width: 20px;
+            min-height: 20px;
+        }
+        #selector {
+            position: absolute;
+            outline: 2px solid #2983cc;
+            outline-offset: 2px;
+            border-radius: 2px;
+            background: #2983cc20;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        .resize-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #2983cc;
+            right: -6px;
+            bottom: -7px;
+            border-radius: 50%;
+            cursor: se-resize;
+            pointer-events: all;
+        }
+
+        #controls {
+            position: absolute;
+            /* right: -30px;
+            top: 0; */
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 1000;
+        }
+        #controls button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 4px;
+            background: #fff;
+            color: #666;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        #controls button>.bi{
+            font-weight:bolder;
+            font-size: 16px;
+        }
+
+        #controls button:hover {
+            background: #eee;
+        }
+        #controls .quick-align {
+            position: relative;
+            padding-right: 10px;
+        }
+        #controls .align-menu {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            /* background: #fff; */
+            border-radius: 4px;
+            /* box-shadow: 0 2px 8px rgba(0,0,0,0.15); */
+            display: none;
+            width: max-content;
+            /* padding: 4px; */
+        }
+        #controls .quick-align:hover .align-menu,
+        #controls .align-menu:hover {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        #controls .align-menu button {
+            width: 100%;
+            padding: 4px 12px;
+            text-align: left;
+            justify-content: flex-start;
+            gap: 4px;
+        }
+
+        {{ tagscss|safe }}
+    </style>
+    <link rel="stylesheet" href="/lib/booticon.css">
+</head>
+<body>
+    <script src="/lib/jq.min.js"></script>
+    <div id="selector">
+        <div class="resize-handle"></div>
+    </div>
+    <div id="controls">
+        <div class="quick-align">
+            <button><i class="bi bi-arrows-move"></i></button>
+            <div class="align-menu">
+                <button onclick="alignElement('center')"><i class="bi bi-stop-btn"></i>居中</button>
+                <button onclick="alignElement('hcenter')"><i class="bi bi-distribute-horizontal"></i>横向居中</button>
+                <button onclick="alignElement('vcenter')"><i class="bi bi-distribute-vertical"></i>纵向居中</button>
+            </div>
+        </div>
+        <button onclick="changeZIndex('top')"><i class="bi bi-chevron-bar-up"></i></button>
+        <button onclick="changeZIndex('up')"><i class="bi bi-chevron-up"></i></button>
+        <button onclick="changeZIndex('down')"><i class="bi bi-chevron-down"></i></button>
+        <button onclick="changeZIndex('bottom')"><i class="bi bi-chevron-bar-down"></i></button>
+    </div>
+    {{ elements_html|safe }}
+    <script>
+        let moving = false;
+        let resizing = false;
+        let startPos = {x: 0, y: 0};
+        let startSize = {width: 0, height: 0};
+        let selectedElement = null;
+        const $selector = $('#selector');
+
+        // 选择元素的核心方法，供内部和父页面调用
+        function selectElement(element) {
+            const $element = typeof element === "string" ? $(element) : $(element);
+            if (!$element.length) return;
+            
+            selectedElement = $element[0];
+            const position = $element.position();
+            
+            $selector.show().css({
+                left: position.left,
+                top: position.top,
+                width: $element.outerWidth(),
+                height: $element.outerHeight()
+            });
+
+            $('#controls').show().css({
+                left: position.left+$element.outerWidth()+10,
+                top: position.top
+            });
+            
+            // 通知父页面
+            if (!moving && !resizing) {
+                window.parent.select($element.data('id'));
+            }
+        }
+
+        // 清除选择
+        function clearSelection() {
+            if (moving || resizing) return;
+            selectedElement = null;
+            $selector.hide();
+            $('#controls').hide()
+            window.parent.select(null);
+        }
+
+        // 事件委托处理所有元素的点击事件
+        $(document).on('mousedown', function(e) {
+            // 处理控制按钮的点击
+            if ($(e.target).closest('#controls').length) {
+                console.log('click');
+                e.stopPropagation();
+                return;
+            }
+
+            const $target = $(e.target);
+            
+            // 处理调整大小
+            if ($target.hasClass('resize-handle')) {
+                e.stopPropagation();
+                if (!selectedElement) return;
+                
+                resizing = true;
+                $('#controls').hide();
+                startPos = {x: e.clientX, y: e.clientY};
+                startSize = {
+                    width: $(selectedElement).width(),
+                    height: $(selectedElement).height()
+                };
+                return;
+            }
+
+            // 处理元素选择和移动
+            const $element = $target.closest('.element');
+            if ($element.length) {
+                e.stopPropagation();
+                if (!selectedElement || selectedElement !== $element[0]) {
+                    selectElement($element[0]);
+                }
+                moving = true;
+                $('#controls').hide();
+                startPos = {
+                    x: e.clientX - $element.position().left,
+                    y: e.clientY - $element.position().top
+                };
+            } else {
+                // 点击空白区域
+                clearSelection();
+            }
+        });
+
+        // 处理移动和调整大小
+        $(document).on('mousemove', function(e) {
+            if (moving && selectedElement) {
+                const newLeft = e.clientX - startPos.x;
+                const newTop = e.clientY - startPos.y;
+                $(selectedElement).css({ left: newLeft, top: newTop });
+                $selector.css({ left: newLeft, top: newTop });
+            } else if (resizing && selectedElement) {
+                const newWidth = Math.max(20, startSize.width + (e.clientX - startPos.x));
+                const newHeight = Math.max(20, startSize.height + (e.clientY - startPos.y));
+                $(selectedElement).css({ width: newWidth, height: newHeight });
+                $selector.css({ width: newWidth, height: newHeight });
+            }
+        });
+
+        // 处理移动和调整大小结束
+        $(document).on('mouseup', function() {
+            if (moving && selectedElement) {
+                const pos = $(selectedElement).position();
+                window.parent.updatePosition(
+                    selectedElement.dataset.id,
+                    pos.left,
+                    pos.top
+                );
+                $('#controls').show().css({
+                    left: pos.left+$(selectedElement).outerWidth()+10,
+                    top: pos.top
+                })
+            }
+            if (resizing && selectedElement) {
+                const $el = $(selectedElement);
+                window.parent.updateSize(
+                    selectedElement.dataset.id,
+                    $el.width(),
+                    $el.height()
+                );
+                $('#controls').show().css({
+                    left: $el.position().left+$el.outerWidth()+10,
+                    top: $el.position().top
+                })
+            }
+            moving = false;
+            resizing = false;
+        });
+
+        // 处理右键菜单
+        $(document).on('contextmenu', '.element', function(e) {
+            e.preventDefault();
+            if(!selectedElement || selectedElement !== this) {
+                selectElement(this);
+            }
+            window.parent.show_contextmenu(e.pageX, e.pageY);
+        });
+
+        // 添加对齐功能
+        function alignElement(type) {
+            if (!selectedElement) return;
+            const $element = $(selectedElement);
+            const $body = $('body');
+            const bodyWidth = $body.width();
+            const bodyHeight = $body.height();
+            const elementWidth = $element.outerWidth();
+            const elementHeight = $element.outerHeight();
+            
+            let newLeft = $element.position().left;
+            let newTop = $element.position().top;
+
+            switch(type) {
+                case 'center':
+                    newLeft = (bodyWidth - elementWidth) / 2;
+                    newTop = (bodyHeight - elementHeight) / 2;
+                    break;
+                case 'hcenter':
+                    newLeft = (bodyWidth - elementWidth) / 2;
+                    break;
+                case 'vcenter':
+                    newTop = (bodyHeight - elementHeight) / 2;
+                    break;
+            }
+
+            $element.css({left: newLeft, top: newTop});
+            $selector.css({left: newLeft, top: newTop});
+            window.parent.updatePosition(selectedElement.dataset.id, newLeft, newTop);
+        }
+
+        // 添加层级调整功能
+        function changeZIndex(type) {
+            if (!selectedElement) return;
+            window.parent.updateElementsOrder(selectedElement.dataset.id,type);
+        }
+        $('#controls').hide();
+    </script>
+</body>
+</html>
