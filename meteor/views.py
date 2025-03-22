@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse as jsr
-from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_sameorigin as xf_same
 import json, uuid
 
-# 所有样式
+# 所有样式模板
 styleM = {
     'text': {
         'name':'文本样式',
@@ -70,15 +70,14 @@ f = {
             'id': str(uuid.uuid4()),
             'type': 'text',    # text 或 shape
             'prop':{
-                'content':'你好'
+                'content':'欢迎'
             },
             'x': 100,
             'y': 100,
             'width': 200,
-            'height': 50,
+            'height': 100,
             'style': {
-                'text.fontSize':30,
-                'text.color':'#000000',
+                'text.color':'#2983cc',
             },
             'tags': []
         }]
@@ -86,10 +85,10 @@ f = {
     'tags': {
         'title': {
             'prop':{
-                'name':'标题'
+                'name':'标题文本'
             },
             'style': {
-                'text.fontSize': 48,
+                'text.fontSize': 80,
                 'text.color': '#000000',
                 'text.textAlign': 'center',
             }
@@ -97,6 +96,7 @@ f = {
     }
 }
 
+# 属性模板，其中 tag 键方便 js 中元素和标签 loadprop 的共用
 props={
     'tag':{
         'name':{
@@ -152,6 +152,7 @@ def index(req):
     return render(req,'meteor/index.html')
 
 def edit(req,pg):
+    # 编辑页面
     return render(req,'meteor/edit.html',{
         'pgid':pg,
         'file':f['pages'][int(pg)],
@@ -162,14 +163,14 @@ def edit(req,pg):
 
 @xf_same
 def render_page(req,pg):
+    # 渲染嵌套的页面
     html = ''
     i=0
     for element in f['pages'][int(pg)]['elements']:
         i+=1
-        # 复制样式
+        # 复制一份样式
         style=dict(element['style'])
         
-        # 生成 css
         style_str = f'''
             left: {element['x']}px;
             top: {element['y']}px;
@@ -177,6 +178,7 @@ def render_page(req,pg):
             height: {element['height']}px;
             z-index: {i};
         '''
+        # 利用重复嵌套格式化实现模板填充，for tag 中同
         style_str += ''.join([
             ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
             .format(value=v)
@@ -185,6 +187,7 @@ def render_page(req,pg):
             
         html += htmlM[element['type']].format(e=element, tags=' ele-tag-'.join(['']+element.get('tags', [])), style=style_str)
     
+    # 处理 tag 样式，以 class 方式设置
     tagscss=''
     for tag in f['tags']:
         tagscss+='.ele-tag-'+tag+'{'+(''.join([
@@ -197,13 +200,6 @@ def render_page(req,pg):
         'elements_html': html,
         'tagscss':tagscss
     })
-
-# def get_styles(req):
-#     return jsr({
-#         'configs': styleM,
-#         'tags': f['tags']
-#     })
-
 
 def add_element(req,pg):
     if req.method == 'POST':
@@ -219,9 +215,8 @@ def delete_element(req,pg):
         return jsr(f['pages'][int(pg)])
     return jsr({'status': 'error'})
 
-@csrf_exempt
 def update_file(req,pg):
-    # print(req.body.decode('utf8'))
+    # 更新页面元素，同步更改
     if req.method == 'POST':
         global f
         data = json.loads(req.body.decode())
@@ -230,6 +225,7 @@ def update_file(req,pg):
     return jsr({'status': 'error'})
 
 def update_tag(req):
+    # 同步文档中的 tag 样式的更改
     if req.method == 'POST':
         global f
         data = json.loads(req.body.decode())

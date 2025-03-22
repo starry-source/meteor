@@ -1,17 +1,15 @@
 @import url(base.css);
 @import url(edit-layout.css);
 
-.tabbox>.pg{
-    display: none;
-    width: 100%;
-    height: 100%;
-}
+/* 选中元素后才启用的元素，配合 js */
+.select-then-enable:not(.able) {
+    opacity: 0.5;
+    pointer-events: none;
 
-.tabbox>.pg.show{
-    display: block
 }
-
-button{
+/* 一些通用控件样式，无需设置 class */
+/* 按钮 */
+button {
     appearance: none;
     background-color: #7f7f7f20;
     padding: 3px 8px;
@@ -25,24 +23,26 @@ button{
     justify-content: center;
 }
 
-button.ok{
+button.ok {
     background-color: #2983cc;
     color: #fff;
 }
-button:hover{
+
+button:hover {
     background-color: #7f7f7f30;
 }
 
-button.ok:hover{
+button.ok:hover {
     background-color: #57a5e5;
 }
 
 
-button:active{
+button:active {
     opacity: 0.6;
 }
 
-input:not([type=range]){
+/* 多样的输入 */
+input:not([type=range]) {
     outline: none;
     border: 2px solid #7f7f7f40;
     transition: 50ms;
@@ -50,16 +50,19 @@ input:not([type=range]){
     padding: 2px 7px;
     background: transparent;
 }
-input[type=color]{
+
+input[type=color] {
     padding: 0 !important;
     width: 30px;
     height: 30px;
     border-radius: 50%;
     /* border: none; */
 }
+
 input[type=color]::-webkit-color-swatch-wrapper {
     padding: 2px;
 }
+
 input[type=color]::-webkit-color-swatch {
     border: none;
     display: block;
@@ -67,16 +70,19 @@ input[type=color]::-webkit-color-swatch {
     height: 100%;
     width: 100%;
 }
-input:not([type=range]):hover{
+
+input:not([type=range]):hover {
     background-color: #7f7f7f10;
 }
-input:not([type=range]):active{
+
+input:not([type=range]):active {
     opacity: 0.7;
 }
-input:not([type=range]):focus{
+
+input:not([type=range]):focus {
     background-color: #fff;
     border-color: #2983cc;
-    box-shadow:#00000030 0 1px 3px ;
+    box-shadow: #00000030 0 1px 3px;
 }
 
 /* 重置默认样式 */
@@ -87,24 +93,24 @@ input[type="range"] {
     width: 140px;
     height: 20px;
     cursor: pointer;
-  }
-  
-  /* 轨道样式 */
-  input[type="range"]::-webkit-slider-runnable-track {
+}
+
+/* 轨道样式 */
+input[type="range"]::-webkit-slider-runnable-track {
     height: 4px;
     border-radius: 2px;
     background: #e5e7eb;
+    /* 可再次用渐变背景实现左侧填充 */
     transition: background 0.3s ease;
-  }
-  
-  input[type="range"]::-moz-range-track {
+}
+
+input[type="range"]::-moz-range-track {
     height: 4px;
     border-radius: 2px;
     background: #e5e7eb;
-  }
-  
-  /* 滑块样式 */
-  input[type="range"]::-webkit-slider-thumb {
+}
+
+input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 16px;
@@ -115,20 +121,20 @@ input[type="range"] {
     margin-top: -6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  /* 悬停效果 */
-  input[type="range"]:hover::-webkit-slider-thumb {
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
     transform: scale(1.2);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* 激活状态 */
-  input[type="range"]:active::-webkit-slider-thumb {
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
     transform: scale(0.9);
     background: #2471b5;
-  }
-selectbox{
+}
+
+/* 平替 select */
+selectbox {
     background-color: #fff;
     padding: 2px 7px;
     display: inline-flex;
@@ -141,26 +147,31 @@ selectbox{
     border: 2px solid #7f7f7f40;
     overflow: hidden;
 }
-selectbox>option{
+
+selectbox>option {
     display: none;
 }
-selectbox>option[selected]{
+
+/* 在下拉按钮中显示选中的 option 内容 */
+selectbox>option[selected] {
     display: inline;
 }
 
-selectbox:hover{
+selectbox:hover {
     background-color: #7f7f7f10;
 }
-selectbox:active{
+
+selectbox:active {
     opacity: 0.6;
 }
-selectbox.open{
+
+selectbox.open {
     /* background-color: #2983cc30; */
     border-color: #2983cc;
-    box-shadow:#00000030 0 1px 3px ;
+    box-shadow: #00000030 0 1px 3px;
 }
 
-#selectmenu{
+#selectmenu {
     border-radius: 5px;
     background-color: #f9f9f9c0;
     backdrop-filter: blur(20px);
@@ -179,31 +190,36 @@ selectbox.open{
     overflow-y: auto;
 }
 
-#selectmenu>.option{
+#selectmenu>.option {
     /* display: flex; */
     border-radius: 4px;
     transition: 50ms;
     padding: 1px 14px;
     margin: 1px;
 }
-#selectmenu>.option:hover{
+
+#selectmenu>.option:hover {
     background-color: #7f7f7f1a;
 }
-#selectmenu>.option:active{
+
+#selectmenu>.option:active {
     opacity: 0.6;
 }
-#selectmenu>.option.selected{
+
+#selectmenu>.option.selected {
     background-color: #2983cc;
     color: #fff;
 }
 
-.list{
+/* 通用竖排列表 */
+.list {
     display: flex;
     flex-direction: column;
     gap: 3px;
     padding: 5px;
 }
-.list>.item{
+
+.list>.item {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -211,137 +227,17 @@ selectbox.open{
     padding: 3px 8px;
     border-radius: 5px;
 }
-.list>.item:hover{
+
+.list>.item:hover {
     background-color: #7f7f7f10;
 }
-.list>.item:active{
+
+.list>.item:active {
     opacity: 0.6;
 }
 
-
-#toolbar{
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    overflow: hidden;
-    min-height: 40px;
-    height: 40px;
-    max-height: 40px;
-    padding: 5px 2px 5px 2px;
-    align-items: center;
-}
-
-#toolbar>.b{
-    height: 100%;
-    overflow: hidden;
-    border-radius: 7px;
-    background-color: #fff;
-    box-shadow: #00000040 0 1px 2px;
-    margin-right: 5px;
-    display: flex;
-    padding: 2px;
-    align-items: center;
-}
-
-#toolbar>.b>.bt{
-    border-radius: 5px;
-    transition: 80ms;
-    font-size: 14px;
-    margin-right: 2px;
-}
-#toolbar>.b>.bt:last-child{
-    margin-right: 0;
-}
-#toolbar>.b>.bt:hover{
-    background-color: #7f7f7f30;
-}
-#toolbar>.b>.bt:active{
-    opacity: 0.6;
-}
-#toolbar>.b>.bt.sel{
-    color: #fff;
-    background-color: #1e7dcb;
-}
-
-#toolbar>.b>.bt.l{
-    display: flex;
-    align-items: center;
-    padding: 3px 7px;
-}
-#toolbar>.b>.bt.l>span{
-    margin: 0 1px 0 3px;
-}
-#toolbar>.b.ac>.bt.dl:hover{
-    background-color: #9d0303d8;
-    color: #fff;
-}
-
-
-/* tools */
-
-
-#tools>.group{
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: max-content;
-    padding: 5px;
-}
-
-#tools>.group>span{
-    font-size: 13px;
-    color: #888;
-    width: 100%;
-    text-align: center;
-}
-
-#tools>.group>.fun{
-    flex-grow: 1;
-    grid-template-rows: repeat(8,18px);
-    grid-template-columns: 18px;
-    grid-auto-columns: 18px;
-    grid-auto-flow: column;
-    gap: 2px;
-    display: grid;
-}
-
-#tools>.group>.fun>.ts{
-    border-radius: 5px;
-    transition: 50ms;
-    cursor: pointer;
-}
-#tools>.group>.fun>.ts:hover{
-    background-color: #7f7f7f20;
-}
-
-#tools>.group>.fun>.ts:active{
-    opacity: 0.7;
-}
-#tools>.group>.fun>.ts.big{
-    display: flex;
-    flex-direction: column;
-    /* height: 50%; */
-    grid-row-start: span 4;
-    grid-column-start: span 4;
-}
-
-#tools>.group>.fun>.ts.big>svg{
-    width: 100%;
-    display: block;
-    /* height: 100%; */
-    flex-grow: 1;
-    transform: scale(0.7) translateY(10%);
-}
-
-#tools>.group>.fun>.ts.big>span{
-    font-size: 14px;
-    width: 100%;
-    text-align: center;
-}
-
-
-
-.modal{
+/* 对话框 */
+.modal {
     position: fixed;
     top: 20px;
     width: 30%;
@@ -353,46 +249,174 @@ selectbox.open{
     border-radius: 8px;
     animation: modalin 200ms ease-out;
 }
-@keyframes modalin{
-    from{
+
+@keyframes modalin {
+    from {
         transform: translateY(calc(-100% - 30px));
     }
-    to{
+
+    to {
         transform: none;
     }
 }
 
-.modal>.tit{
+.modal>.tit {
     font-size: 20px;
 }
 
-.modal>.body{
+.modal>.body {
     margin: 10px 5px;
 }
 
-.select-then-enable:not(.able){
-    opacity: 0.5;
-    pointer-events: none;
-
+/* 工具栏 */
+#toolbar {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    overflow: hidden;
+    min-height: 40px;
+    height: 40px;
+    max-height: 40px;
+    padding: 5px 2px 5px 2px;
+    align-items: center;
 }
 
-#tags>.tag-list{
+#toolbar>.b {
+    height: 100%;
+    overflow: hidden;
+    border-radius: 7px;
+    background-color: #fff;
+    box-shadow: #00000040 0 1px 2px;
+    margin-right: 5px;
+    display: flex;
+    padding: 2px;
+    align-items: center;
+}
+
+#toolbar>.b>.bt {
+    border-radius: 5px;
+    transition: 80ms;
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+#toolbar>.b>.bt:last-child {
+    margin-right: 0;
+}
+
+#toolbar>.b>.bt:hover {
+    background-color: #7f7f7f30;
+}
+
+#toolbar>.b>.bt:active {
+    opacity: 0.6;
+}
+
+#toolbar>.b>.bt.sel {
+    color: #fff;
+    background-color: #1e7dcb;
+}
+
+#toolbar>.b>.bt.l {
+    display: flex;
+    align-items: center;
+    padding: 3px 7px;
+}
+
+#toolbar>.b>.bt.l>span {
+    margin: 0 1px 0 3px;
+}
+
+#toolbar>.b.ac>.bt.dl:hover {
+    background-color: #9d0303d8;
+    color: #fff;
+}
+
+
+/* "添加元素"面板，我不知道我当时为什么要叫它 tools */
+
+#tools>.group {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: max-content;
+    padding: 5px;
+}
+
+#tools>.group>span {
+    font-size: 13px;
+    color: #888;
+    width: 100%;
+    text-align: center;
+}
+
+#tools>.group>.fun {
+    flex-grow: 1;
+    grid-template-rows: repeat(8, 18px);
+    grid-template-columns: 18px;
+    grid-auto-columns: 18px;
+    grid-auto-flow: column;
+    gap: 2px;
+    display: grid;
+}
+
+#tools>.group>.fun>.ts {
+    border-radius: 5px;
+    transition: 50ms;
+    cursor: pointer;
+}
+
+#tools>.group>.fun>.ts:hover {
+    background-color: #7f7f7f20;
+}
+
+#tools>.group>.fun>.ts:active {
+    opacity: 0.7;
+}
+
+#tools>.group>.fun>.ts.big {
+    display: flex;
+    flex-direction: column;
+    /* height: 50%; */
+    grid-row-start: span 4;
+    grid-column-start: span 4;
+}
+
+#tools>.group>.fun>.ts.big>svg {
+    width: 100%;
+    display: block;
+    /* height: 100%; */
+    flex-grow: 1;
+    transform: scale(0.7) translateY(10%);
+}
+
+#tools>.group>.fun>.ts.big>span {
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+}
+
+
+/* 标签面板 */
+#tags>.tag-list {
     display: flex;
     flex-wrap: wrap;
     padding: 5px;
     gap: 5px;
 }
-#tags>.tag-list>.tag.active{
+
+#tags>.tag-list>.tag.active {
     background-color: #2983cc;
     border-color: #2983cc;
     color: #fff;
 }
-#tags>.tag-list>.tag.active>button{
+
+#tags>.tag-list>.tag.active>button {
     color: #fff;
     background-color: #ffffff40;
 }
 
-#tags>.tag-list>.tag{
+#tags>.tag-list>.tag {
     border: 2px solid #7f7f7f30;
     display: flex;
     align-items: center;
@@ -402,53 +426,63 @@ selectbox.open{
     transition: 50ms;
     cursor: pointer;
 }
-#tags>.tag-list>.tag>button{
+
+#tags>.tag-list>.tag>button {
     margin-left: 5px;
     font-size: 0.8em;
 }
-#sty>.menu{
+
+/* 样式表 */
+#sty>.menu {
     width: 30%;
     min-width: 100px;
     max-width: 200px;
 }
 
-#sty>.menu>.item.show{
+#sty>.menu>.item.show {
     background-color: #398cd150;
     /* color: #fff; */
 }
-#sty>.page-container{
+
+#sty>.page-container {
     flex-grow: 1;
 }
-#sty>.page-container>.page{
+
+#sty>.page-container>.page {
     display: none;
     width: 100%;
     height: 100%;
     padding: 5px;
 }
-#sty>.page-container>.page.show{
+
+#sty>.page-container>.page.show {
     display: block;
 }
-#sty>.page-container>.page>.tit{
-    font-size:large;
+
+#sty>.page-container>.page>.tit {
+    font-size: large;
     display: block;
     margin: 10px 5px;
 }
-.form-group{
+
+
+.form-group {
     display: flex;
     width: 100%;
     align-items: center;
     padding: 1px 10px !important;
     gap: 5px;
 }
-.form-group>label{
+
+.form-group>label {
     word-break: keep-all;
 }
 
-.form-group>.form-control:not([type=color]):not(selectbox){
+.form-group>.form-control:not([type=color]):not(selectbox) {
     flex-grow: 1;
 }
 
-.form-group>button{
+.form-group>button {
     display: flex;
     width: 25px;
     height: 25px;
@@ -456,12 +490,13 @@ selectbox.open{
     text-align: center;
 }
 
-
-#page{
+#page {
     width: 100%;
     flex-grow: 1;
     background-color: #eee;
     overflow: auto;
     border: none;
+    
+    /* 有趣 */
     -ms-zoom-animation: default;
 }

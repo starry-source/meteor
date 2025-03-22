@@ -133,7 +133,7 @@
         let selectedElement = null;
         const $selector = $('#selector');
 
-        // 选择元素的核心方法，供内部和父页面调用
+        // 选择元素，供内部、父页面调用
         function selectElement(element) {
             const $element = typeof element === "string" ? $(element) : $(element);
             if (!$element.length) return;
@@ -168,9 +168,9 @@
             window.parent.select(null);
         }
 
-        // 事件委托处理所有元素的点击事件
+        // 委托处理所有元素的点击事件，以避免一些奇异的冒泡逻辑
         $(document).on('mousedown', function(e) {
-            // 处理控制按钮的点击
+            // 控制按钮的点击
             if ($(e.target).closest('#controls').length) {
                 console.log('click');
                 e.stopPropagation();
@@ -179,7 +179,7 @@
 
             const $target = $(e.target);
             
-            // 处理调整大小
+            // 调整大小
             if ($target.hasClass('resize-handle')) {
                 e.stopPropagation();
                 if (!selectedElement) return;
@@ -194,7 +194,7 @@
                 return;
             }
 
-            // 处理元素选择和移动
+            // 元素选择、移动
             const $element = $target.closest('.element');
             if ($element.length) {
                 e.stopPropagation();
@@ -208,12 +208,12 @@
                     y: e.clientY - $element.position().top
                 };
             } else {
-                // 点击空白区域
+                // 即点击空白区域
                 clearSelection();
             }
         });
 
-        // 处理移动和调整大小
+        // 移动、调整大小过程
         $(document).on('mousemove', function(e) {
             if (moving && selectedElement) {
                 const newLeft = e.clientX - startPos.x;
@@ -228,7 +228,7 @@
             }
         });
 
-        // 处理移动和调整大小结束
+        // 移动、调整大小结束
         $(document).on('mouseup', function() {
             if (moving && selectedElement) {
                 const pos = $(selectedElement).position();
@@ -258,16 +258,17 @@
             resizing = false;
         });
 
-        // 处理右键菜单
+        // 右键菜单
         $(document).on('contextmenu', '.element', function(e) {
             e.preventDefault();
             if(!selectedElement || selectedElement !== this) {
                 selectElement(this);
             }
+            // 未实现：
             window.parent.show_contextmenu(e.pageX, e.pageY);
         });
 
-        // 添加对齐功能
+        // 快速对齐
         function alignElement(type) {
             if (!selectedElement) return;
             const $element = $(selectedElement);
@@ -298,7 +299,7 @@
             window.parent.updatePosition(selectedElement.dataset.id, newLeft, newTop);
         }
 
-        // 添加层级调整功能
+        // 层级调整
         function changeZIndex(type) {
             if (!selectedElement) return;
             window.parent.updateElementsOrder(selectedElement.dataset.id,type);

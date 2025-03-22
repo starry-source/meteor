@@ -7,7 +7,6 @@
     <title>Meteor - 编辑</title>
     <link rel="stylesheet" href="/lib/edit.css">
     <link rel="stylesheet" href="/lib/booticon.css">
-    
 </head>
 
 <body>
@@ -20,7 +19,18 @@
     </script>
     <div id="mainpage">
         <div class="bar">
-            <div id="bar"></div>
+            <div id="bar">
+                <img src="/lib/logo.svg" alt="Meteor" class="icon">
+                <span class="meteor">Meteor</span>
+                <div class="menu list">
+                    <span class="item">文件</span>
+                    <span class="item">编辑</span>
+                    <span class="item">帮助</span>
+                </div>
+                <div class="bottom list">
+                    <span class="item" onclick="window.location='/';">关于</span>
+                </div>
+            </div>
         </div>
         <div class="ctr">
             <iframe id="page" src="/render/{{ pgid }}">
@@ -38,18 +48,18 @@
                     </div>
                 </div>
                 <div class="b zoom">
-                    <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())-10);zoompage($('#zoompage').val())">
+                    <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())-5);zoompage($('#zoompage').val())">
                         <i class="bi bi-zoom-out"></i>
                     </div>
-                    <input id="zoompage" type="range" min="20" max="200" step="10" value="100" oninput="zoompage(this.value);">
-                    <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())+10);zoompage($('#zoompage').val())">
+                    <input id="zoompage" type="range" min="20" max="150" step="5" value="100" oninput="zoompage(this.value);">
+                    <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())+5);zoompage($('#zoompage').val())">
                         <i class="bi bi-zoom-in"></i>
                     </div>
                 </div>
             </div>
             <div class="p1">
                 <div id="animation">
-
+                    动画面板
                 </div>
                 <div id="tools">
                     <div class="group big">
@@ -96,18 +106,15 @@
                 </div>
             </div>
             <div id="sti">
-                <!-- <div class="style-selector">
-                    <button class="active" data-target="element">當前元素</button>
-                    <button data-target="tag">標籤樣式</button>
-                </div> -->
+
             </div>
             <div id="sty">
+                <!-- 样式表 -->
             </div>
         </div>
     </div>
     <div id="addstyle" class="modal">
         <div class="tit">
-            
             <span class="key"></span>
             <span class="key2"></span>
         </div>

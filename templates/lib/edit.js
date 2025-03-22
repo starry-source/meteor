@@ -1,112 +1,12 @@
 let selected=null;
 let selectedIndex=null;
 
-
+// 复制一份 json，防止原数据被修改
 function copy(obj){
     return JSON.parse(JSON.stringify(obj));
 }
 
-/* 文件数据模板，供参考
-styleM = {
-    'text': {
-        'name':'文本样式',
-        'font': {
-            'css': 'font-family: \'{value}\';',
-            'name': '字体',
-            'type': 'select',
-            'options': [
-                {'name': '预设', 'value': 'inherit'},
-                {'name': '宋体', 'value': '宋体'},
-                {'name': '仿宋', 'value': '仿宋'}
-            ]
-        },
-        'fontSize': {
-            'css': 'font-size: {value}px;',
-            'name': '字体大小',
-            'type': 'number',
-        },
-        'color': {
-            'css': 'color: {value};',
-            'name': '颜色',
-            'type': 'color'
-        },
-        'textAlign': {
-            'css': 'text-align: {value};',
-            'name': '对齐方式',
-            'type': 'select',
-            'options': [
-                {'name': '靠左', 'value': 'left'},
-                {'name': '置中', 'value': 'center'},
-                {'name': '靠右', 'value': 'right'}
-            ]
-        }
-    },
-    'shape': {
-        'name':'形状样式',
-        'bgcolor': {
-            'css': 'background-color: {value};',
-            'name': '背景色',
-            'type': 'color'
-        },
-        'bdrd': {
-            'css': 'border-radius: {value}px;',
-            'name': '圆角',
-            'type': 'number',
-        }
-    }
-} 
-
-htmlM={
-    'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}" style="{style}">{e[prop][content]}</span>',
-    'shape': '<div id="ele-{e[id]}" class="element {tags} element-shape" data-id="{e[id]}" style="{style}"></div>',
-}
-
-# 文件数据
-file = {
-    'background': '#ffffff',
-    'elements': [{
-        'id': str(uuid.uuid4()),
-        'type': 'text',
-        'prop':{
-            'content':'你好'
-        },
-        'x': 100,
-        'y': 100,
-        'width': 200,
-        'height': 50,
-        'style': {
-            'text.fontSize':30,
-            'text.color':'#000000',
-        },
-        'tags': []
-    }]
-}
-
-tags={
-    'title': {
-        'prop':{
-            'name':'标题'
-        },
-        'style': {
-            'text.fontSize': 48,
-            'text.color': '#000000',
-            'text.textAlign': 'center',
-        }
-    }
-}
-
-props={
-    'text':{
-        'content':{
-            'name':'文本',
-            'type':'text'
-        }
-    },
-    'shape':{}
-}
-    */
-
-
+// 更新位置，在 page.html 中调用
 function updatePosition(id, x, y) {
     file.elements.forEach(element => {
         if (element.id == id) {
@@ -117,6 +17,8 @@ function updatePosition(id, x, y) {
     $.post(`/api/${pg}/update`, JSON.stringify(file));
 
 }
+
+// 更新大小，在 page.html 中调用
 function updateSize(id, w,h) {
     file.elements.forEach(element => {
         if (element.id == id) {
@@ -128,16 +30,11 @@ function updateSize(id, w,h) {
 
 }
 
+// 更新元素层级，在 page.html 中调用
 function updateElementsOrder(elementid, type) {
     const elementIndex = file.elements.findIndex(element => element.id === elementid);
-    if (elementIndex === -1) {
-        // 如果找不到元素，返回错误
-        throw new Error("Element not found");
-    }
-    // 获取元素并从原位置删除
     const [element] = file.elements.splice(elementIndex, 1);
 
-    // 根据type插入元素
     switch (type) {
         case 'top':
             file.elements.push(element);
@@ -161,7 +58,7 @@ function updateElementsOrder(elementid, type) {
             break;
     }
     
-    // 更新服务器
+    // 同步后端
     $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
         $('#page').attr('src', $('#page').attr('src'));
         select(selected);
@@ -173,6 +70,7 @@ function updateElementsOrder(elementid, type) {
     
 }
 
+// 选择元素，加载样式表和属性面板的内容，在 page.html 中调用
 function select(id){
     selected=id;
     selectedIndex=null;
@@ -195,7 +93,9 @@ function select(id){
     });
 }
 
+// 加载属性面板内容，在 select, selectTag 中调用
 function loadprop(e, id, tag=false) {
+    // 设置 tag 为 true 即加载标签的属性，即名称
     $('#prop>.props').html('');
     propedit = '';
     let prop = copy(props[tag?'tag':e.type]);
@@ -221,7 +121,9 @@ function loadprop(e, id, tag=false) {
     $('#prop>.props').html(propedit);
 }
 
+// 加载元素样式表，在 select, selectTag 中调用
 function loadstyle(e, id, tag=false) {
+    // 设置 tag 为 true 即加载标签样式
     $('#sty').html(''); styleedit = '';
     let style = copy(stylem);
     for (let key in e.style) {
@@ -269,59 +171,9 @@ function loadstyle(e, id, tag=false) {
     $('#sty').html(styleedit);
     toggle_style_page(Object.keys(style)[0]);
 }
-function toggle_style_page(page){
-    $('#sty>.menu>.item.show').removeClass('show');
-    $('#sty>.menu>.item.'+page).addClass('show');
-    $('#sty>.page-container>.page.show').removeClass('show');
-    $(`#sty>.page-container>.page.${page}`).addClass('show');
-}
 
-function loadTags(reload=false){
-    if(reload){
-        $.get(`/api/tags`).done(data=>{
-            tags=data;
-            loadTags();
-        });
-        return;
-    }
-    $('#tags>.tag-list').html('');
-    let tagsedit='';
-    for(let key in tags){
-        tagsedit+=`<div class="tag tag-${key} ${(selected!=null && file.elements[selectedIndex].tags.includes(key))?'active':''}"
-        onclick="addTagToElement('${key}');">
-
-            <span>${tags[key].prop.name}</span>
-            <button onclick="event.stopPropagation();selectTag('${key}')"><i class="bi bi-pen"></i></button>
-        </div>`;
-    }
-    $('#tags>.tag-list').html(tagsedit);
-}
-
-function selectTag(name){
-    loadprop(tags[name], name, tag=true);
-    loadstyle(tags[name], name, tag=true);
-}
-
-function addTagToElement(name){
-    if(selected==null)return;
-    let e=file.elements[selectedIndex];
-    if(e.tags.includes(name)){
-        e.tags.splice(e.tags.indexOf(name),1);
-    }else{
-        e.tags.push(name);
-    }
-
-
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
-        $('#page').attr('src', $('#page').attr('src'));
-        select(selected);
-        $('#page').on('load',()=>{
-            $('#page')[0].contentWindow.selectElement('#ele-'+selected);
-            $('#page').off('load');
-        });
-    });
-}
-
+// 设置属性
+// 元素属性不应被删除、新增
 function setprop(id,key,value,tag=false){
     if(tag){
         tags[id].prop[key]=value;
@@ -344,6 +196,8 @@ function setprop(id,key,value,tag=false){
     });
 }
 
+
+// 显示添加样式的对话框
 function addstyle(id,key,key2,tag=false){
     $('#addstyle').show();
     $('#addstyle>.tit>.key').text(stylem[key].name);
@@ -363,6 +217,7 @@ function addstyle(id,key,key2,tag=false){
     $('#addstyle>.body>.value').html(styleedit);
 }
 
+// 设置样式，亦可用于添加样式
 function setstyle(id,key,key2,value,tag=false){
     if(tag){
         tags[id].style[key+'.'+key2]=value;
@@ -393,6 +248,7 @@ function setstyle(id,key,key2,value,tag=false){
     $('#addstyle').hide();
 }
 
+// 删除样式定义
 function delstyle(id,key,key2,tag=false){
     if(tag){
         delete tags[id].style[key+'.'+key2];
@@ -418,6 +274,63 @@ function delstyle(id,key,key2,tag=false){
     });
 }
 
+// 刷新标签面板，标注当前元素正在使用的标签
+function loadTags(reload=false){
+    if(reload){
+        $.get(`/api/tags`).done(data=>{
+            tags=data;
+            loadTags();
+        });
+        return;
+    }
+    $('#tags>.tag-list').html('');
+    let tagsedit='';
+    for(let key in tags){
+        tagsedit+=`<div class="tag tag-${key} ${(selected!=null && file.elements[selectedIndex].tags.includes(key))?'active':''}"
+        onclick="addTagToElement('${key}');">
+
+            <span>${tags[key].prop.name}</span>
+            <button onclick="event.stopPropagation();selectTag('${key}')"><i class="bi bi-pen"></i></button>
+        </div>`;
+    }
+    $('#tags>.tag-list').html(tagsedit);
+}
+
+// 编辑标签
+function selectTag(name){
+    loadprop(tags[name], name, tag=true);
+    loadstyle(tags[name], name, tag=true);
+}
+
+// 应用标签于当前选中元素
+function addTagToElement(name){
+    if(selected==null)return;
+    let e=file.elements[selectedIndex];
+    if(e.tags.includes(name)){
+        e.tags.splice(e.tags.indexOf(name),1);
+    }else{
+        e.tags.push(name);
+    }
+
+
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        $('#page').attr('src', $('#page').attr('src'));
+        select(selected);
+        $('#page').on('load',()=>{
+            $('#page')[0].contentWindow.selectElement('#ele-'+selected);
+            $('#page').off('load');
+        });
+    });
+}
+// 切换样式表的分类，结构见 loadstyle
+function toggle_style_page(page){
+    $('#sty>.menu>.item.show').removeClass('show');
+    $('#sty>.menu>.item.'+page).addClass('show');
+    $('#sty>.page-container>.page.show').removeClass('show');
+    $(`#sty>.page-container>.page.${page}`).addClass('show');
+}
+
+// 添加元素
 function addEle(type){
     $.post(`/api/${pg}/add`, JSON.stringify({type:type})).done(data=>{
         file=data;
@@ -429,6 +342,7 @@ function addEle(type){
     });
 }
 
+// 删除选中的元素
 function delEle(id){
     $.post(`/api/${pg}/delete`, JSON.stringify({id:id})).done(data=>{
         file=data;
@@ -437,6 +351,7 @@ function delEle(id){
     });
 }
 
+// 显示新元素，在对话框的确定按钮被调用
 function addNewTag(name){
     if(name in tags){
         alert('Tag already exists');
@@ -450,6 +365,8 @@ function addNewTag(name){
     });
 }
 
+// 用于展示 selectbox 的下拉菜单
+// 计划能处理其它菜单的显示，如右键菜单、下拉菜单等
 function show(selectbox){
     if($(selectbox).hasClass('open')){
         $(selectbox).removeClass('open');
@@ -465,6 +382,8 @@ function show(selectbox){
         $(selectbox).addClass('open');
     }
 }
+
+// 见上
 function selectOption(option){
     $('selectbox.open').find('[selected]').removeAttr('selected');
     $('selectbox.open').find(`[value=${option}]`).attr('selected','selected');
@@ -472,6 +391,7 @@ function selectOption(option){
     $('#selectmenu').hide();
 }
 
+// 缩放页面
 function zoompage(z){
     $('#page').css('zoom',z/100);
 }

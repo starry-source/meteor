@@ -24,7 +24,10 @@ Developed by Starry Source</p>
 
 <br>
 这不是测试版，更不是正式版，也不是发行版。
+
 目前功能上能制作单页演示文稿，但尚不支持播放和导出；元素上只支持文本。
+
+![界面截图](art/view.png)
 
 ## 环境
 ### 开发环境
@@ -41,4 +44,4 @@ Microsoft Edge
 ```cmd
 python manage.py runserver
 ```
-即可
+即可。
