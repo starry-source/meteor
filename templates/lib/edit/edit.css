@@ -1,4 +1,4 @@
-@import url(base.css);
+@import url(/lib/base.css);
 @import url(edit-layout.css);
 
 /* 选中元素后才启用的元素，配合 js */
@@ -83,6 +83,7 @@ input:not([type=range]):focus {
     background-color: #fff;
     border-color: #2983cc;
     box-shadow: #00000030 0 1px 3px;
+    opacity: 1 !important;
 }
 
 /* 重置默认样式 */
@@ -169,6 +170,7 @@ selectbox.open {
     /* background-color: #2983cc30; */
     border-color: #2983cc;
     box-shadow: #00000030 0 1px 3px;
+    background-color: #fff !important;
 }
 
 #selectmenu {
@@ -211,7 +213,75 @@ selectbox.open {
     color: #fff;
 }
 
+#contextmenu {
+    border-radius: 7px;
+    background-color: #f9f9f9c0;
+    backdrop-filter: blur(20px);
+    box-shadow: #0000001f 0 4px 9px;
+    flex-direction: column !important;
+    flex-wrap: nowrap;
+    padding: 2px 5px;
+    width: max-content;
+    min-width: 150px;
+    font-size: 13.5px;
+    position: fixed;
+    z-index: 99;
+    border: 1.5px solid #7f7f7f20;
+    /* opacity: 0; */
+    overflow-y: auto;
+    display: none;
+}
+
+#contextmenu.show{
+    display: flex;
+    /* animation: fadeIn 200ms ease-out; */
+}
+
+#contextmenu>.option {
+    /* display: flex; */
+    border-radius: 5px;
+    transition: 50ms;
+    padding: 2px 10px;
+    margin: 1px;
+}
+
+#contextmenu>.option:hover {
+    background-color: #7f7f7f1a;
+}
+
+#contextmenu>.option:active {
+    opacity: 0.6;
+}
+
+#contextmenu>.option.disable {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+#contextmenu>.text {
+    font-size: 13px;
+    color: #333;
+    padding: 5px 7px;
+    white-space: pre-wrap;
+}
+
+#contextmenu>hr{
+    border: none;
+    height: 1px;
+    background-color: #7f7f7f30;
+    margin: 2px 0;
+}
+
+contextmenu{
+    display: none;
+}
+
 /* 通用竖排列表 */
+
+info{
+    color: #999;
+    font-size: 14px;
+}
 .list {
     display: flex;
     flex-direction: column;
@@ -235,6 +305,12 @@ selectbox.open {
 .list>.item:active {
     opacity: 0.6;
 }
+
+.list>.item.active {
+    background-color: #2983cc;
+    color: #fff;
+}
+
 
 /* 对话框 */
 .modal {
@@ -433,31 +509,29 @@ selectbox.open {
 }
 
 /* 样式表 */
+
+#sty{
+    display: flex;
+}
 #sty>.menu {
     width: 30%;
     min-width: 100px;
     max-width: 200px;
 }
 
-#sty>.menu>.item.show {
+/* #sty>.menu>.item.show {
     background-color: #398cd150;
-    /* color: #fff; */
-}
+    color: #fff;
+} */
 
 #sty>.page-container {
     flex-grow: 1;
 }
 
 #sty>.page-container>.page {
-    display: none;
-    width: 100%;
-    height: 100%;
     padding: 5px;
 }
 
-#sty>.page-container>.page.show {
-    display: block;
-}
 
 #sty>.page-container>.page>.tit {
     font-size: large;
@@ -496,7 +570,119 @@ selectbox.open {
     background-color: #eee;
     overflow: auto;
     border: none;
-    
-    /* 有趣 */
-    -ms-zoom-animation: default;
+}
+
+/* :root.disable #page{
+    pointer-events: none;
+} */
+
+:root.disable body>*:not(#contextmenu){
+    pointer-events: none;
+}
+
+/* 动画面板 */
+.animation-panel {
+    display: flex;
+    /* height: 300px; */
+    height: 100%;
+    padding: 10px;
+    gap: 10px;
+}
+
+.animation-panel .timeline {
+    width: 250px;
+    border-right: 1px solid #eee;
+    overflow-y: auto;
+}
+
+.animation-panel .animation-list {
+    border-left: 2px solid #ddd;
+    margin-left: 5px;
+    padding-left: 10px;
+}
+
+.animation-panel .nodes {
+    margin: 5px 0;
+}
+
+.animation-panel .node {
+    background: #f5f5f5;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 5px 0;
+    cursor: pointer;
+}
+
+.animation-panel .node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.animation-panel .node.selected {
+    background: #2983cc20;
+}
+
+.animation-panel .animation-item {
+    padding: 3px 8px;
+    margin: 2px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.animation-panel .animation-item:hover {
+    background: #f5f5f5;
+}
+
+.animation-panel .animation-item.selected {
+    background: #2983cc20;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+@keyframes flyInLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0);opacity: 1; }
+}
+@keyframes flyInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0);opacity: 1; }
+}
+@keyframes flyInTop {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0);opacity: 1; }
+}
+@keyframes flyInBottom {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0);opacity: 1; }
+}
+.animation-panel .animation-editor {
+    flex: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.animation-panel .animation-editor .preview-btn {
+    margin-top: 10px;
+    align-self: center;
+}
+
+.animation-panel .editor {
+    display: none;
+}
+
+.animation-panel .no-selection {
+    color: #999;
+    text-align: center;
+    padding: 20px;
 }

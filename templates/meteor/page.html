@@ -2,32 +2,49 @@
 <html>
 <head>
     <style>
+
+        html{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            min-height: 100vh;
+            min-width: 100vw;
+        }
         :root{
             background: #eee;
         }
         body {
             margin: 0;
             padding: 20px;
-            width: 1920px;
-            height: 1080px;
-            background: {{ background }};
+            width: 1920px !important;
+            height: 1080px !important;
+            position: relative;
+            /* background: #eee; */
+            /* background: {{ background }}; */
         }
         .element {
             position: absolute !important;
             cursor: default;
             user-select: none;
-            min-width: 20px;
-            min-height: 20px;
+        }
+        #elements{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         #selector {
             position: absolute;
             outline: 2px solid #2983cc;
             outline-offset: 2px;
             border-radius: 2px;
-            background: #2983cc20;
+            background: #2983cc10;
             pointer-events: none;
             z-index: 1000;
             display: none;
+            transform-origin: left top;
         }
         .resize-handle {
             position: absolute;
@@ -49,6 +66,7 @@
             flex-direction: column;
             gap: 4px;
             z-index: 1000;
+            transform-origin: left top;
         }
         #controls button {
             width: 24px;
@@ -100,13 +118,15 @@
             justify-content: flex-start;
             gap: 4px;
         }
-
-        {{ tagscss|safe }}
     </style>
     <link rel="stylesheet" href="/lib/booticon.css">
 </head>
 <body>
     <script src="/lib/jq.min.js"></script>
+    
+    <div id="elements">
+
+    </div>
     <div id="selector">
         <div class="resize-handle"></div>
     </div>
@@ -124,7 +144,20 @@
         <button onclick="changeZIndex('down')"><i class="bi bi-chevron-down"></i></button>
         <button onclick="changeZIndex('bottom')"><i class="bi bi-chevron-bar-down"></i></button>
     </div>
-    {{ elements_html|safe }}
+    <div id="cm">
+        
+    <contextmenu style="display: none;">
+        <!-- <p class="text"></p> -->
+        <p onclick="pasteElement()" if="clipboard">粘贴到页面</p>
+        <hr if="clipboard">
+        <p onclick="copyElement()">复制元素</p>
+        <p onclick="copyElement();delEle(selected)">剪切元素</p>
+        <p onclick="delEle(selected)">删除</p>
+    </contextmenu>
+    </div>
+    <style id="tagcss">
+
+    </style>
     <script>
         let moving = false;
         let resizing = false;
@@ -132,10 +165,31 @@
         let startSize = {width: 0, height: 0};
         let selectedElement = null;
         const $selector = $('#selector');
+        let zoom_level=1;
+
+
+        function loadpage(selected=null){
+            $.getJSON('/get/{{ pg }}').done(r=>{
+                $('#tagcss').html(r.tagcss);
+                $('#elements').html(r.elements_html);
+                $('body').css('background',r.background);
+                if(selected==null){
+                    clearSelection();
+                }else if(selected==false){
+                    // 避免向父页面汇报，导致重新加载
+                    // moving=true;
+                    // selectElement(selectedElement);
+                    // moving=false;
+                }else{
+                    selectElement(selected);
+                }
+            });
+        }
+        loadpage();
 
         // 选择元素，供内部、父页面调用
         function selectElement(element) {
-            const $element = typeof element === "string" ? $(element) : $(element);
+            const $element = $(element);
             if (!$element.length) return;
             
             selectedElement = $element[0];
@@ -144,13 +198,18 @@
             $selector.show().css({
                 left: position.left,
                 top: position.top,
-                width: $element.outerWidth(),
-                height: $element.outerHeight()
+                // width: selectedElement.offsetWidth,
+                // height: $element.outerHeight()
+                width: $element.outerWidth()*zoom_level,
+                height: $element.outerHeight()*zoom_level,
+                transform: 'scale('+(1/zoom_level)+')'
             });
 
             $('#controls').show().css({
-                left: position.left+$element.outerWidth()+10,
-                top: position.top
+                left: position.left+$element.outerWidth()+10*(1/zoom_level),
+                top: position.top,
+                transform: 'scale('+(1/zoom_level)+')'
+
             });
             
             // 通知父页面
@@ -176,6 +235,10 @@
                 e.stopPropagation();
                 return;
             }
+            // // 右键菜单
+            // if(e.button==2){
+            // }
+            // 选择框的点击
 
             const $target = $(e.target);
             
@@ -224,7 +287,7 @@
                 const newWidth = Math.max(20, startSize.width + (e.clientX - startPos.x));
                 const newHeight = Math.max(20, startSize.height + (e.clientY - startPos.y));
                 $(selectedElement).css({ width: newWidth, height: newHeight });
-                $selector.css({ width: newWidth, height: newHeight });
+                $selector.css({ width: newWidth*zoom_level, height: newHeight*zoom_level });
             }
         });
 
@@ -238,7 +301,7 @@
                     pos.top
                 );
                 $('#controls').show().css({
-                    left: pos.left+$(selectedElement).outerWidth()+10,
+                    left: pos.left+$(selectedElement).outerWidth()+10*(1/zoom_level),
                     top: pos.top
                 })
             }
@@ -250,7 +313,7 @@
                     $el.height()
                 );
                 $('#controls').show().css({
-                    left: $el.position().left+$el.outerWidth()+10,
+                    left: $el.position().left+$el.outerWidth()+10*(1/zoom_level),
                     top: $el.position().top
                 })
             }
@@ -260,12 +323,12 @@
 
         // 右键菜单
         $(document).on('contextmenu', '.element', function(e) {
+            e.stopPropagation();
             e.preventDefault();
-            if(!selectedElement || selectedElement !== this) {
-                selectElement(this);
-            }
-            // 未实现：
-            window.parent.show_contextmenu(e.pageX, e.pageY);
+            selectElement(e.target);
+            const offset=window.parent.getpageoffset();
+            window.parent.showcm(e.clientX*zoom_level+offset.left,e.clientY*zoom_level+offset.top,document.getElementById('cm'));
+            return false;
         });
 
         // 快速对齐
@@ -304,6 +367,15 @@
             if (!selectedElement) return;
             window.parent.updateElementsOrder(selectedElement.dataset.id,type);
         }
+
+        function zoom(z){
+            zoom_level=z;
+            // $('#elements').css('zoom',zoom_level);
+            moving=true;
+            selectElement(selectedElement);
+            moving=false;
+        }
+
         $('#controls').hide();
     </script>
 </body>

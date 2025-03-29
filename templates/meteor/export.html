@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Meteor Presentation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .page {
+            display: none;
+            width: {{ width }}px;
+            height: {{ height }}px;
+        }
+        .page.active {
+            display: block;
+        }
+        .element {
+            position: absolute !important;
+            /* display: block; */
+            /* opacity: 0; */
+            display: none;
+            pointer-events: none;
+        }
+        .element.active {
+            /* opacity: 1; */
+            display: block;
+            pointer-events: auto;
+        }
+        #container {
+            position: absolute;
+            transform-origin: left top;
+        }
+
+        {{ tagcss|safe }}
+
+        @keyframes fadein {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeout {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        @keyframes show {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes hide {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        {% for page in pages %}
+        <div class="page" style="background:{{ page.background }}">
+            {{ page.html|safe }}
+        </div>
+        {% endfor %}
+        <div class="page" style="background-color: #000;">
+            <p style="text-align: center;color: #fff;font-size: 20px;">演示文稿放映结束</p>
+        </div>
+    </div>
+    <script>
+        let currentPage = 0;
+        const pages = document.querySelectorAll('.page');
+        const pageData={{ data|safe }};
+        let clickIndex = 0;
+        
+        function playAnimations(animations, skipAnimation = false) {
+            animations.forEach(anim => {
+                const element = document.querySelector(`#ele-${anim.target}`);
+                if(!element) return;
+                
+                const duration = anim.prop?.duration || 1;
+                const delay = anim.delay;
+                
+                if(skipAnimation) {
+                    // 直接设置最终状态，不播放动画
+                    if(['show', 'fadein'].includes(anim.type)) {
+                        element.classList.add('active');
+                    } else if(['hide', 'fadeout'].includes(anim.type)) {
+                        element.classList.remove('active');
+                    }
+                    element.style.animation = '';
+                    return;
+                }
+                
+                setTimeout(() => {
+                    if(['show', 'fadein'].includes(anim.type)) {
+                        element.classList.add('active');
+                    } else if(['hide', 'fadeout'].includes(anim.type)) {
+                        setTimeout(() => {
+                            element.classList.remove('active');
+                        }, duration*1000);
+                    }
+                    element.style.animation = `${anim.type} ${duration}s forwards`;
+                }, delay * 1000);
+            });
+        }
+
+        function showPage(index, skipAnimation = false) {
+            pages.forEach(page => page.classList.remove('active'));
+            pages[index].classList.add('active');
+            
+            // 重置所有元素状态
+            const elements = pages[index].querySelectorAll('.element');
+            elements.forEach(element => {
+                element.classList.remove('active');
+                element.style.animation = '';
+            });
+
+            // 没有动画的元素默认显示
+            if(!pageData[index].animation?.onload?.length) {
+                elements.forEach(element => element.classList.add('active'));
+            }
+            
+            // 播放onload动画
+            if(pageData[index].animation?.onload) {
+                playAnimations(pageData[index].animation.onload, skipAnimation);
+            }
+        }
+
+        function fitScreen() {
+            const container = document.getElementById('container');
+            const page = pages[0];
+            const scaleX = window.innerWidth / page.offsetWidth;
+            const scaleY = window.innerHeight / page.offsetHeight;
+            const scale = Math.min(scaleX, scaleY);
+            container.style.transform = `scale(${scale})`;
+            container.style.left = `${(window.innerWidth - page.offsetWidth * scale) / 2}px`;
+            container.style.top = `${(window.innerHeight - page.offsetHeight * scale) / 2}px`;
+        }
+        
+        function next() {
+            const currentpageData = pageData[currentPage];
+            if(currentpageData.animation?.onclick && clickIndex < currentpageData.animation.onclick.length) {
+                playAnimations(currentpageData.animation.onclick[clickIndex].actions);
+                clickIndex++;
+                return false;
+            }
+            if(currentPage >= pages.length - 1) return true;
+            currentPage++;
+            clickIndex = 0;
+            showPage(currentPage);
+            return false;
+        }
+
+        function prev() {
+            if(clickIndex > 0) {
+                clickIndex--;
+                showPage(currentPage, true); // 重新加载当前页，跳过动画
+                // 直接应用之前所有动画的最终状态
+                for(let i = 0; i < clickIndex; i++) {
+                    playAnimations(pageData[currentPage].animation.onclick[i].actions, true);
+                }
+                return false;
+            }
+            if(currentPage <= 0) return true;
+            currentPage--;
+            const currentpageData = pageData[currentPage];
+            clickIndex = currentpageData.animation?.onclick?.length || 0;
+            showPage(currentPage, true);
+            // 直接应用所有动画的最终状态
+            if(clickIndex > 0) {
+                for(let i = 0; i < clickIndex; i++) {
+                    playAnimations(currentpageData.animation.onclick[i].actions, true);
+                }
+            }
+            return false;
+        }
+
+        document.addEventListener('click', () => {
+            if(next()) window.close();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowLeft') prev();
+            else if(e.key === 'ArrowRight' || e.key === ' ') {
+                if(next()) window.close();
+            }
+        });
+
+        window.addEventListener('resize', fitScreen);
+        showPage(0);
+        fitScreen();
+    </script>
+</body>
+</html>

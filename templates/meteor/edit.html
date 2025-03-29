@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meteor - 编辑</title>
-    <link rel="stylesheet" href="/lib/edit.css">
+    <link rel="stylesheet" href="/lib/edit/edit.css">
     <link rel="stylesheet" href="/lib/booticon.css">
 </head>
 
@@ -16,6 +16,8 @@
         stylem={{ stylem|safe }};
         props={{ props|safe }};
         tags={{ tags|safe }};
+        allanimtype={{ allanimtype|safe }};
+        pgnum={{ pgnum|safe }};
     </script>
     <div id="mainpage">
         <div class="bar">
@@ -23,11 +25,25 @@
                 <img src="/lib/logo.svg" alt="Meteor" class="icon">
                 <span class="meteor">Meteor</span>
                 <div class="menu list">
-                    <span class="item">文件</span>
-                    <span class="item">编辑</span>
+                    <span class="item" onclick="showcm(this.offsetLeft+this.offsetWidth+15,this.offsetTop,this)">文件
+                        <contextmenu>
+                            <p if="false">新建</p>
+                            <p if="false">打开</p>
+                            <p if="false">保存</p>
+                        </contextmenu>
+                    </span>
+                    <span class="item" onclick="showcm(this.offsetLeft+this.offsetWidth+15,this.offsetTop,this)">编辑
+                        <contextmenu>
+                            <p onclick="pasteElement()" if="clipboard">粘贴到页面</p>
+                            <hr>
+                            <p onclick="copyElement()" if="selected">复制</p>
+                            <p onclick="copyElement(); delEle(selected)" if="selected">剪切</p>
+                        </contextmenu>
+                    </span>
                     <span class="item">帮助</span>
                 </div>
                 <div class="bottom list">
+                    <span class="item" onclick="window.open('/export','_blank')" style="background-color: #2983cc;color: #fff;">播放</span>
                     <span class="item" onclick="window.location='/';">关于</span>
                 </div>
             </div>
@@ -37,7 +53,7 @@
 
             </iframe>
             <div id="toolbar">
-                <div class="b ac select-then-enable">
+                <!-- <div class="b ac select-then-enable">
                     <div class="a bt l mv">
                         <i class="bi bi-copy"></i>
                         <span>复制</span>
@@ -46,20 +62,25 @@
                         <i class="bi bi-trash3"></i>
                         <span>删除</span>
                     </div>
-                </div>
+                </div> -->
                 <div class="b zoom">
                     <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())-5);zoompage($('#zoompage').val())">
                         <i class="bi bi-zoom-out"></i>
                     </div>
-                    <input id="zoompage" type="range" min="20" max="150" step="5" value="100" oninput="zoompage(this.value);">
+                    <input id="zoompage" type="range" min="20" max="120" step="5" value="100" oninput="zoompage(this.value);">
                     <div class="a bt l mv" onclick="$('#zoompage').val(Number($('#zoompage').val())+5);zoompage($('#zoompage').val())">
                         <i class="bi bi-zoom-in"></i>
                     </div>
                 </div>
             </div>
             <div class="p1">
-                <div id="animation">
-                    动画面板
+                <div id="pages">
+                    <div class="list">
+
+                    </div>
+                    <div class="bottom">
+                        <button onclick="addPage()"><i class="bi bi-plus"></i>添加</button>
+                    </div>
                 </div>
                 <div id="tools">
                     <div class="group big">
@@ -98,7 +119,7 @@
                 <div id="tags">
                     <div class="title">标签</div>
                     <!-- <p style="font-size: small;margin: 0;">点击以添加标签至选中元素。点击标签右部按钮以编辑标签样式。标签样式将用于所有设此标签之元素，但元素样式恒优先于标签样式。</p> -->
-                    <div class="tag-list"></div>
+                    <div class="tag-list select-then-enable"></div>
                     <div class="tag-actions">
                         <button onclick="$('#addtag').show();">添加</button>
                         <button onclick="manageTag()">删除</button>
@@ -106,10 +127,36 @@
                 </div>
             </div>
             <div id="sti">
-
+                <a class="a sty show" onclick="$('#stic>.show,#sti>.show').removeClass('show');$('#stic>#sty,#sti>.sty').addClass('show');">样式</a>
+                <a class="a animation" onclick="$('#stic>.show,#sti>.show').removeClass('show');$('#stic>#animation,#sti>.animation').addClass('show');">动画</a>
             </div>
-            <div id="sty">
-                <!-- 样式表 -->
+            <div class="page-container" id="stic">
+                <div id="sty" class="page show">
+                    <!-- 样式表 -->
+                </div>
+                <div id="animation" class="page" style="pointer-events: none;opacity: 0.7;">
+                    <p style="margin: 10px;">不是很建议编辑，有点小问题。</p>
+                    <div class="animation-panel">
+                        <div class="timeline">
+                            <div class="onload">
+                                <span style="font-size:20px">初始</span>
+                                <div class="animation-list"></div>
+                            </div>
+                            <div class="onclick">
+                                <span style="font-size:20px">单击触发 <button onclick="addTimeNode()"><i class="bi bi-plus"></i></button></span>
+                                <div class="nodes"></div>
+                            </div>
+                        </div>
+                        <div class="animation-editor">
+                            <div class="no-selection">
+                                选择动画以编辑
+                            </div>
+                            <div class="editor">
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -132,8 +179,20 @@
         <button class="ok" onclick="addNewTag($('#addtag>.body>.tag').val())">确定</button>
         <button onclick="$('.modal').hide()" class="cancel">取消</button>
     </div>
+    <div id="addAnimation" class="modal">
+        <div class="tit">添加动画</div>
+        <div class="body">
+            <div class="form-group">
+                <label>节点名称</label>
+                <input type="text" class="node-name">
+            </div>
+        </div>
+        <button class="ok" onclick="confirmAddAnimation()">确定</button>
+        <button onclick="$('.modal').hide()" class="cancel">取消</button>
+    </div>
     <div id="selectmenu"></div>
-    <script src="/lib/edit.js"></script>
+    <div id="contextmenu"></div>
+    <script src="/lib/edit/edit.js"></script>
     <!-- <script>
         gotopage(0);
     </script> -->

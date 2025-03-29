@@ -3,6 +3,7 @@ from django.http import JsonResponse as jsr
 # from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_sameorigin as xf_same
 import json, uuid
+from django.shortcuts import redirect
 
 # 所有样式模板
 styleM = {
@@ -56,7 +57,7 @@ styleM = {
 
 htmlM={
     'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}" style="{style}">{e[prop][content]}</span>',
-    'shape': '<div id="ele-{e[id]}" class="element {tags} element-shape" data-id="{e[id]}" style="{style}"></div>',
+    'rect': '<div id="ele-{e[id]}" class="element {tags} element-rect" data-id="{e[id]}" style="{style}"></div>',
 }
 
 # 文件数据
@@ -66,21 +67,90 @@ f = {
     'width': 1920,
     'pages': [{
         'background': '#ffffff',
-        'elements': [{
-            'id': str(uuid.uuid4()),
-            'type': 'text',    # text 或 shape
-            'prop':{
-                'content':'欢迎'
+        'elements': [
+            {
+                'id': 'uuidcode1',
+                'type': 'rect',
+                'prop':{},
+                'x': 100,
+                'y': 100,
+                'width': 1000,
+                'height': 500,
+                'style': {
+                    'shape.bgcolor':'#f2e0ff',
+                },
+                'tags': []
             },
-            'x': 100,
-            'y': 100,
-            'width': 200,
-            'height': 100,
-            'style': {
-                'text.color':'#2983cc',
+            {
+                'id': 'uuidcode2',
+                'type': 'text',
+                'prop':{
+                    'content':'欢迎'
+                },
+                'x': 200,
+                'y': 200,
+                'width': 400,
+                'height': 300,
+                'style': {
+                    'text.color':'#2983cc',
+                },
+                'tags': ['title']
             },
-            'tags': []
-        }]
+        ],
+        'animation':{
+            # 此页动画
+            'onload':[ # 直接为动画，省去节点名称
+                {
+                    'target':'uuidcode1',
+                    'type':'fadein',
+                    'delay':0,
+                    'prop':{
+                        'duration':1
+                    }
+                }
+            ],
+            'onclick':[
+                {
+                    # 节点 1
+                    'name':'展示背景',
+                    'actions':[
+                        # 同时播放
+                        {
+                            'target':'uuidcode2',
+                            'type':'fadein',
+                            'delay':0,
+                            'prop':{
+                                'duration':1
+                                # 'direction':'left',
+                                # 从左飞入
+                            }
+                        }
+                    ]
+                },
+                {
+                    # 节点 2
+                    'name':'淡出内容',
+                    'actions':[
+                        {
+                            'target':'uuidcode1',
+                            'type':'fadeout',
+                            'delay':0,
+                            'prop':{
+                                'duration':1
+                            }
+                        },
+                        {
+                            'target':'uuidcode2',
+                            'type':'fadeout',
+                            'delay':0,
+                            'prop':{
+                                'duration':2
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
     }],
     'tags': {
         'title': {
@@ -88,13 +158,15 @@ f = {
                 'name':'标题文本'
             },
             'style': {
-                'text.fontSize': 80,
+                'text.fontSize': 150,
                 'text.color': '#000000',
                 'text.textAlign': 'center',
             }
         }
-    }
+    },
 }
+
+allanimtype=['fadein','fadeout','show','hide']
 
 # 属性模板，其中 tag 键方便 js 中元素和标签 loadprop 的共用
 props={
@@ -104,13 +176,57 @@ props={
             'type':'text',
         }
     },
+    'anim':{
+        'fadein':{
+            'duration': {
+                'name': '持续时间/s',
+                'type': 'number',
+                'default': 0.2
+            }
+        },
+        'fadeout':{
+            'duration': {
+                'name': '持续时间/s',
+                'type': 'number',
+                'default': 0.2
+            }
+        },
+        'show':{
+        },
+        'hide':{
+        },
+        # 'flyin':{
+        #     'direction':{
+        #         'name':'方向',
+        #         'type':'select',
+        #         'options':[
+        #             {'name':'上','value':'top'},
+        #             {'name':'下','value':'bottom'},
+        #             {'name':'左','value':'left'},
+        #             {'name':'右','value':'right'}
+        #         ]
+        #     }
+        # },
+        # 'flyout':{
+        #     'direction':{
+        #         'name':'方向',
+        #         'type':'select',
+        #         'options':[
+        #             {'name':'上','value':'top'},
+        #             {'name':'下','value':'bottom'},
+        #             {'name':'左','value':'left'},
+        #             {'name':'右','value':'right'}
+        #         ]
+        #     }
+        # }
+    },
     'text':{
         'content':{
             'name':'文本',
             'type':'text'
         }
     },
-    'shape':{}
+    'rect':{}
 }
 
 def getnewele(type):
@@ -130,8 +246,8 @@ def getnewele(type):
             },
             'tags':[]
         },
-        'shape':{
-            'type':'shape',
+        'rect':{
+            'type':'rect',
             'prop':{},
             'x':100,
             'y':100,
@@ -153,20 +269,59 @@ def index(req):
 
 def edit(req,pg):
     # 编辑页面
+    if len(f['pages'])==0:
+        return render(req,'meteor/edit.html',{
+            'pgid':0,
+            'file':dict(),
+            'stylem':styleM,
+            'props':props,
+            'tags':f['tags'],
+            'allanimtype':(allanimtype),
+            'pgnum':len(f['pages'])
+        })
+    if int(pg) >= len(f['pages']):
+        return redirect('/edit/'+str(len(f['pages'])-1))
+    if int(pg) < 0:
+        return redirect('/edit/0')
     return render(req,'meteor/edit.html',{
         'pgid':pg,
         'file':f['pages'][int(pg)],
         'stylem':styleM,
         'props':props,
-        'tags':f['tags']
+        'tags':f['tags'],
+        'allanimtype':(allanimtype),
+        'pgnum':len(f['pages'])
     })
 
 @xf_same
 def render_page(req,pg):
     # 渲染嵌套的页面
+    # html = render_html(pg)
+    # tagscss = render_tag_css()
+    # return render(req, 'meteor/page.html', {
+    #     'background': f['pages'][0]['background'],
+    #     'elements_html': html,
+    #     'tagscss':tagscss
+    # })
+    return render(req,'meteor/page.html',{
+        'pg':pg
+    })
+
+def render_tag_css():
+    tagscss=''
+    for tag in f['tags']:
+        tagscss+='.ele-tag-'+tag+'{'+(''.join([
+            ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
+            .format(value=v)
+            for k, v in f['tags'][tag]['style'].items()
+        ]))+'}'
+        
+    return tagscss
+
+def render_html(pg):
     html = ''
-    i=0
-    for element in f['pages'][int(pg)]['elements']:
+    i = 0
+    for element in f['pages'][pg]['elements']:
         i+=1
         # 复制一份样式
         style=dict(element['style'])
@@ -186,19 +341,13 @@ def render_page(req,pg):
         ])
             
         html += htmlM[element['type']].format(e=element, tags=' ele-tag-'.join(['']+element.get('tags', [])), style=style_str)
-    
-    # 处理 tag 样式，以 class 方式设置
-    tagscss=''
-    for tag in f['tags']:
-        tagscss+='.ele-tag-'+tag+'{'+(''.join([
-            ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
-            .format(value=v)
-            for k, v in f['tags'][tag]['style'].items()
-        ]))+'}'
-    return render(req, 'meteor/page.html', {
-        'background': f['pages'][0]['background'],
-        'elements_html': html,
-        'tagscss':tagscss
+    return html
+
+def getpage(req,pg):
+    return jsr({
+        'background': f['pages'][int(pg)]['background'],
+        'elements_html': render_html(int(pg)),
+        'tagcss':render_tag_css()
     })
 
 def add_element(req,pg):
@@ -236,6 +385,22 @@ def update_tag(req):
 def get_tags(req):
     return jsr(f['tags'])
 
+def export_file(req):
+    # 导出为独立HTML文件
+    pages_html = []
+    for i in range(len(f['pages'])):
+        pages_html.append({
+            'background': f['pages'][i]['background'],
+            'html': render_html(i)
+        })
+    return render(req, 'meteor/export.html', {
+        'pages': pages_html,
+        'width': f['width'],
+        'height': f['height'],
+        'tagcss': render_tag_css(),
+        'data':f['pages']
+    })
+
 def add_tag(req):
     if req.method == 'POST':
         global f
@@ -249,4 +414,36 @@ def add_tag(req):
                 }
             }
             return jsr({'status': 'ok'})
+    return jsr({'status': 'error'})
+
+def newpage(req):
+    # 新建页面
+    global f
+    # data = json.loads(req.body.decode())
+    f['pages'].append({
+        'background': f['pages'][-1]['background'] if len(f['pages'])>0 else '#ffffff',
+        'elements': [],
+        'animation':{
+            'onload':[],
+            'onclick':[]
+        }
+    })
+    return redirect('/edit/'+str(len(f['pages'])-1))
+def deletepage(req):
+    if req.method == 'POST':
+        global f
+        data = json.loads(req.body.decode())
+        f['pages']=[ele for i,ele in enumerate(f['pages']) if i!=data['page']]
+        return jsr({'status': 'ok'})
+    return jsr({'status': 'error'})
+
+
+def copypage(req):
+    # 复制页面
+    if req.method == 'POST':
+        global f
+        data = json.loads(req.body.decode())
+        # f['pages'].append(f['pages'][data['page']])
+        f['pages'].insert(data['page']+1,f['pages'][data['page']])
+        return jsr({'status': 'ok'})
     return jsr({'status': 'error'})
