@@ -2,10 +2,17 @@ from django.urls import re_path as path
 from . import views
 from django.http import FileResponse
 
+base_path = '.'
+try:
+    import sys
+    base_path = sys._MEIPASS
+except Exception:
+    pass
+
 urlpatterns = [
     # 一行代码实现 assets
     path(r'^lib/(?P<filename>.+)$',
-        lambda req,filename:FileResponse(open('./templates/lib/'+filename,'rb'))),
+        lambda req,filename:FileResponse(open(base_path+'/templates/lib/'+filename,'rb'))),
     
     path(r'^$', views.index),
     path(r'^edit/(?P<pg>\d+)$', views.edit),

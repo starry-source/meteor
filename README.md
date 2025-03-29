@@ -5,7 +5,7 @@
 <p>
 <h1 align="center" style="line-height:1;">Meteor</h1>
 <p align="center">基于 Html 的演示文稿制作器，跨平台无软件无依赖播放<br>
-Developed by Starry Source</p>
+由星源开发 · Developed by Starry Source</p>
 </p>
 <p align="center" class="shields">
   <span style="text-decoration:none">
@@ -22,26 +22,35 @@ Developed by Starry Source</p>
   </pan>
 </p>
 
-<br>
-功能尚不完善，尚不可用于实际制作使用。
+> [!NOTE]
+> 功能尚不完善，尚不可用于实际制作使用。
 
-目前功能上能实现基本制作和播放；还不支持多媒体。
+Meteor 是一个演示文稿制作器（即大家说的 "PPT"）。
 
-![界面截图](art/view.png)
+作为亮点，Meteor 生成的演示文稿可**随时随地**播放。即，在其它电脑上，不必安装 Meteor，演示文稿也能正常播放。
 
-## 环境
-### 开发环境
+目前，功能上能实现基本的制作；还不支持多媒体。
 
-Windows 11 24h2\
-Python 3.9.13\
-Django 4.6.1\
-Microsoft Edge
+![编辑界面](art/edit.png)
+![播放界面](art/play.png)
 
+## 使用方法
 
-## 运行
+- 在右侧 Releases 中下载最新版本的可执行文件（`.exe` 文件）。
+- 运行程序，在浏览器中打开显示的网址，即可使用。
+
+## 运行方法
+
 安装 python，安装 django，运行命令
 
 ```cmd
 python manage.py runserver
 ```
 即可。
+
+## 开发环境
+
+Windows 11 24h2\
+Python 3.9.13\
+Django 4.6.1\
+Microsoft Edge
