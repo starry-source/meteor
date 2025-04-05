@@ -11,22 +11,13 @@
             min-height: 100vh;
             min-width: 100vw;
         }
-        :root{
-            background: #eee;
-        }
         body {
             margin: 0;
-            padding: 20px;
             width: 1920px !important;
             height: 1080px !important;
             position: relative;
+            background: transparent;
             /* background: #eee; */
-            /* background: {{ background }}; */
-        }
-        .element {
-            position: absolute !important;
-            cursor: default;
-            user-select: none;
         }
         #elements{
             width: 100%;
@@ -34,23 +25,37 @@
             position: absolute;
             top: 0;
             left: 0;
+            background: var(--background,#fff);
         }
-        #selector {
+        .element {
+            position: absolute !important;
+            cursor: default;
+            user-select: none;
+        }
+        #selector {            
             position: absolute;
-            outline: 2px solid #2983cc;
+            outline: 2px solid currentColor;
             outline-offset: 2px;
             border-radius: 2px;
-            background: #2983cc10;
+            background: repeating-linear-gradient(
+            45deg,
+            #b97b3210,
+            #b97b3210 10px,
+            transparent 10px,
+            transparent 20px
+            );
             pointer-events: none;
             z-index: 1000;
             display: none;
             transform-origin: left top;
+            color: #fff;
+            mix-blend-mode: difference;
         }
         .resize-handle {
             position: absolute;
             width: 8px;
             height: 8px;
-            background: #2983cc;
+            background: #b97b32;
             right: -6px;
             bottom: -7px;
             border-radius: 50%;
@@ -118,6 +123,47 @@
             justify-content: flex-start;
             gap: 4px;
         }
+
+        /* 预览动画样式 */
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 1000;
+        }
+        .preview-page {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 1920px;
+            height: 1080px;
+            background: var(--background,#fff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .preview-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #preview-element {
+            position: absolute;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
     </style>
     <link rel="stylesheet" href="/lib/booticon.css">
 </head>
@@ -155,6 +201,13 @@
         <p onclick="delEle(selected)">删除</p>
     </contextmenu>
     </div>
+    <div class="preview-overlay">
+        <div class="preview-page">
+            <div class="preview-container">
+                <div id="preview-element"></div>
+            </div>
+        </div>
+    </div>
     <style id="tagcss">
 
     </style>
@@ -166,13 +219,63 @@
         let selectedElement = null;
         const $selector = $('#selector');
         let zoom_level=1;
+        const animStyle={
+            in:{
+                fade:{
+                    transition:'var(--anim-prop-duration) var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'0'
+                        },
+                        after:{
+                            'opacity':'1'
+                        }
+                    }
+                },
+                no:{
+                    transition:'0ms var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'0'
+                        },
+                        after:{
+                            'opacity':'1'
+                        }
+                    }
+                }
+            },
+            out:{
+                fade:{
+                    transition:'var(--anim-prop-duration) var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'1'
+                        },
+                        after:{
+                            'opacity':'0'
+                        }
+                    }
+                },
+                no:{
+                    transition:'0ms var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'1'
+                        },
+                        after:{
+                            'opacity':'0'
+                        }
+                    }
+                }
+            }
+        }
 
 
         function loadpage(selected=null){
             $.getJSON('/get/{{ pg }}').done(r=>{
                 $('#tagcss').html(r.tagcss);
                 $('#elements').html(r.elements_html);
-                $('body').css('background',r.background);
+                $(':root').css('--background',r.background);
                 if(selected==null){
                     clearSelection();
                 }else if(selected==false){
@@ -374,6 +477,59 @@
             moving=true;
             selectElement(selectedElement);
             moving=false;
+        }
+
+        function previewAnimation(animation) {
+            const element = document.querySelector(`#ele-${animation.target}`);
+            if (!element) return;
+
+            // 克隆元素及其位置和尺寸
+            const previewEl = element.cloneNode(true);
+            const rect = element.getBoundingClientRect();
+            
+            document.querySelector('#preview-element').innerHTML = '';
+            document.querySelector('#preview-element').appendChild(previewEl);
+            document.querySelector('.preview-overlay').style.display = 'flex';
+
+            // 复制原始元素的位置和尺寸
+            previewEl.style.left = element.style.left;
+            previewEl.style.top = element.style.top;
+            previewEl.style.width = element.style.width;
+            previewEl.style.height = element.style.height;
+
+            // 禁用页面交互
+            document.body.style.pointerEvents = 'none';
+            document.querySelector('.preview-overlay').style.pointerEvents = 'auto';
+            
+            // 设置动画属性
+            const style = animStyle[animation.action][animation.type];
+            if (!style) return;
+
+            // 设置CSS变量
+            previewEl.style.setProperty('--anim-delay', `${animation.delay}s`);
+            previewEl.style.setProperty('--anim-prop-duration', `${animation.prop.duration}s`);
+            
+            // 设置过渡
+            previewEl.style.transition = style.transition;
+
+            // 设置初始状态
+            Object.entries(style.change.before).forEach(([prop, value]) => {
+                previewEl.style[prop] = value;
+            });
+
+            // 延迟设置结束状态以触发动画
+            setTimeout(() => {
+                Object.entries(style.change.after).forEach(([prop, value]) => {
+                    previewEl.style[prop] = value;
+                });
+            }, 50);
+        }
+
+        function closePreview() {
+            document.querySelector('.preview-overlay').style.display = 'none';
+            document.querySelector('#preview-element').innerHTML = '';
+            // 恢复页面交互
+            document.body.style.pointerEvents = 'auto';
         }
 
         $('#controls').hide();

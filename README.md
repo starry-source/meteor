@@ -22,15 +22,17 @@
   </pan>
 </p>
 
+<!-- 
 > [!NOTE]
-> 功能尚不完善，尚不可用于实际制作使用。
+> 功能尚不完善，尚不可用于实际制作使用。 -->
 
 Meteor 是一个演示文稿制作器（即大家说的 "PPT"）。
 
 作为亮点，Meteor 生成的演示文稿可**随时随地**播放。即，在其它电脑上，不必安装 Meteor，演示文稿也能正常播放。
 
-目前，功能上能实现基本的制作；还不支持多媒体。
+目前，功能上能实现基本的制作，可满足日常使用。
 
+（界面有变更，以实际为准）
 ![编辑界面](art/edit.png)
 ![播放界面](art/play.png)
 
@@ -41,7 +43,7 @@ Meteor 是一个演示文稿制作器（即大家说的 "PPT"）。
 
 ## 运行方法
 
-安装 python，安装 django，运行命令
+安装 python，安装依赖，运行命令
 
 ```cmd
 python manage.py runserver
@@ -52,5 +54,5 @@ python manage.py runserver
 
 Windows 11 24h2\
 Python 3.9.13\
-Django 4.6.1\
+Django 4.2.20\
 Microsoft Edge

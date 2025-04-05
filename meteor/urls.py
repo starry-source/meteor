@@ -19,6 +19,12 @@ urlpatterns = [
     path(r'^render/(?P<pg>\d+)$', views.render_page),
     path(r'^get/(?P<pg>\d+)$', views.getpage),
     
+    path(r'^new$',views.newfile),
+    path(r'^open$',views.openfile),
+    path(r'^save$',views.savefile),
+    
+    
+    path(r'^api/reorderpages$', views.reorder_pages),
     path(r'^api/(?P<pg>\d+)/update$', views.update_file),
     path(r'^api/(?P<pg>\d+)/add$', views.add_element),
     path(r'^api/(?P<pg>\d+)/delete$', views.delete_element),
@@ -26,9 +32,13 @@ urlpatterns = [
     path(r'^api/deletepage$', views.deletepage),
     path(r'^api/copypage$', views.copypage),
     
+    path(r'^play$', views.play),
     path(r'^export$', views.export_file),
     
     path(r'^api/tags$', views.get_tags),
     path(r'^api/updatetag$', views.update_tag),
-    path(r'^api/addtag$', views.add_tag)
+    path(r'^api/addtag$', views.add_tag),
+    path(r'^api/upload$', views.upload_image),
+    path(r'^temp/images/(?P<filename>.+)$',
+        lambda req,filename:FileResponse(open('temp/images/'+filename,'rb')))
 ]

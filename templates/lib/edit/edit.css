@@ -567,7 +567,7 @@ info{
 #page {
     width: 100%;
     flex-grow: 1;
-    background-color: #eee;
+    background: transparent;
     overflow: auto;
     border: none;
 }
@@ -587,12 +587,15 @@ info{
     height: 100%;
     padding: 10px;
     gap: 10px;
+    overflow: hidden;
 }
 
 .animation-panel .timeline {
     width: 250px;
     border-right: 1px solid #eee;
     overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
 }
 
 .animation-panel .animation-list {
@@ -641,35 +644,11 @@ info{
 .animation-panel .animation-item.selected {
     background: #2983cc20;
 }
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-@keyframes flyInLeft {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0);opacity: 1; }
-}
-@keyframes flyInRight {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0);opacity: 1; }
-}
-@keyframes flyInTop {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0);opacity: 1; }
-}
-@keyframes flyInBottom {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0);opacity: 1; }
-}
 .animation-panel .animation-editor {
-    flex: 1;
+    flex-grow: 1;
     padding: 10px;
-    display: flex;
-    flex-direction: column;
+    display: block;
+    overflow: hidden;
 }
 
 .animation-panel .animation-editor .preview-btn {
@@ -679,6 +658,8 @@ info{
 
 .animation-panel .editor {
     display: none;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .animation-panel .no-selection {
@@ -686,3 +667,10 @@ info{
     text-align: center;
     padding: 20px;
 }
+
+#animation, #sty{
+    overflow: hidden;
+    max-height: 100%;
+    max-width: 100%;
+}
+

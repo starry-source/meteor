@@ -190,6 +190,6 @@ hr{
 .disabled{
     pointer-events: none;
     user-select: none;
-    filter: opacity(0.5);
+    filter: opacity(0.6);
     cursor: default;
 }

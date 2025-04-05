@@ -87,7 +87,7 @@ function select(id) {
     file.elements.forEach(e => {
         if (e.id != id) return;
         selectedIndex = file.elements.indexOf(e);
-        console.log(selected, selectedIndex);
+        // console.log(selected, selectedIndex);
         loadprop(e, id);
         loadstyle(e, id);
         loadTags();
@@ -145,7 +145,7 @@ function loadstyle(e, id, tag = false) {
             styleedit += `<div class="form-group">
                     <label>${style[key][key2].name}</label>`;
             if (style[key][key2].set) {
-                console.log(key, key2);
+                // console.log(key, key2);
                 if (stylem[key][key2].type == 'select') {
                     styleedit += `<selectbox onclick="show(this)" class="form-control ${key2}" onchange="setstyle('${id}','${key}','${key2}',this.value${tag ? ',tag=true' : ''})">`;
                     stylem[key][key2].options.forEach(option => {
@@ -228,7 +228,7 @@ function setstyle(id, key, key2, value, tag = false) {
             e.style[key + '.' + key2] = value;
         }
     });
-    console.log(file);
+    // console.log(file);
     $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
         $('#page')[0].contentWindow.loadpage('#ele-' + id);
     });
@@ -355,6 +355,14 @@ function show(selectbox) {
     }
 }
 
+// 见上
+function selectOption(option) {
+    $('selectbox.open').find('[selected]').removeAttr('selected');
+    $('selectbox.open').find(`[value=${option}]`).attr('selected', 'selected');
+    $('selectbox.open').val(option).change().removeClass('open');
+    $('#selectmenu').hide();
+}
+
 function showcm(){
     let ex,ey,tg;
     if(arguments.length==2){
@@ -402,14 +410,6 @@ function showcm(){
     }, 100);
 }
 
-// 见上
-function selectOption(option) {
-    $('selectbox.open').find('[selected]').removeAttr('selected');
-    $('selectbox.open').find(`[value=${option}]`).attr('selected', 'selected');
-    $('selectbox.open').val(option).change().removeClass('open');
-    $('#selectmenu').hide();
-}
-
 // 缩放页面
 function zoompage(z) {
     $('#page')[0].contentWindow.zoom(z / 100);
@@ -418,44 +418,36 @@ function zoompage(z) {
 
 // 加载动画
 function loadAnimation() {
-    // if (!selected) {
-    //     $('#animation .animation-panel').hide();
-    //     return;
-    // }
-    // $('#animation .animation-panel').show();
 
     // 加载onload动画
     let html = '';
-    file.animation.onload.forEach((i,anim) => {
-        // if (anim.target === selected) {
-            html += `<div class="animation-item ${anim.target === selected ? 'selected' : ''}" 
-                onclick="selectAnimation('onload',${i})">
-                <span>${anim.type}</span>
-                <button onclick="event.stopPropagation();deleteAnimation('onload', null, '${anim.target}')">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>`;
-        // }
+    file.animation.onload.forEach((anim,i) => {
+        html += `<div class="animation-item ${anim.target == selected ? 'selected' : ''}" 
+            onclick="selectAnimation('onload',null,${i})">
+            <span>${anim.type}</span>
+            <button onclick="event.stopPropagation();deleteAnimation('onload', null, ${i})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>`;
     });
-    $('.animation-panel .onload .animation-list').html(html);
+    $('.animation-panel .onload .animation-list').html(html+`
+                <button onclick="showAddAnimation('onload',null)">添加动画</button>`);
 
     // 加载onclick节点
     html = '';
     file.animation.onclick.forEach((node, index) => {
         let animHtml = '';
         node.actions.forEach((anim, i) => {
-            // if (anim.target === selected) {
-                animHtml += `<div class="animation-item ${anim.target === selected ? 'selected' : ''}" 
-                    onclick="event.stopPropagation();selectAnimation()">
-                    <span>${anim.type}</span>
-                    <button onclick="event.stopPropagation();deleteAnimation('onclick', ${index}, '${anim.target}', ${i})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>`;
-            // }
+            animHtml += `<div class="animation-item ${anim.target == selected ? 'selected' : ''}" 
+                onclick="event.stopPropagation();selectAnimation('onclick', ${index}, ${i})">
+                <span>${anim.type}</span>
+                <button onclick="event.stopPropagation();deleteAnimation('onclick', ${index}, ${i})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>`;
         });
         
-        html += `<div class="node" onclick="selectNode(${index})">
+        html += `<div class="node">
             <div class="node-header">
                 <span>${node.name}</span>
                 <button onclick="event.stopPropagation();deleteNode(${index})">
@@ -464,22 +456,32 @@ function loadAnimation() {
             </div>
             <div class="animation-list">
                 ${animHtml}
-                <button onclick="showAddAnimation(${index})">添加动画</button>
+                <button onclick="showAddAnimation('onclick',${index})">添加动画</button>
             </div>
         </div>`;
     });
     $('.animation-panel .onclick .nodes').html(html);
 }
 
-function selectAnimation(anim) {
-    selectedAnimation = anim;
+function selectAnimation(type, nodeIndex, animIndex) {
+    if (type == 'onload') {
+        anim = file.animation.onload[animIndex];
+    }else if (type == 'onclick') {
+        anim = file.animation.onclick[nodeIndex].actions[animIndex];
+    }
+    selectedAnimation=anim;
 
     $('.animation-editor .no-selection').hide();
     $('.animation-editor .editor').show();
 
     html='';
-    html+=`<div class="form-group"><label>类型</label><selectbox onclick="show(this)" onchange="updateAnimation('type', this.value)">`;
-    allanimtype.forEach(type => {
+    html+=`<div class="form-group"><label>类型</label>
+    <selectbox onclick="show(this)" onchange="updateAnimation('action', this.value)">
+    <option value="in" ${anim.action=='in'?'selected':''}>in</option>
+    <option value="out" ${anim.action=='out'?'selected':''}>out</option>
+    </selectbox>
+    <selectbox onclick="show(this)" onchange="updateAnimation('type', this.value)">`;
+    allanimtype[anim.action].forEach(type => {
         html+=`<option value="${type}" ${anim.type==type?'selected':''}>${type}</option>`;
     });
     html+=`</selectbox></div>`;
@@ -489,8 +491,10 @@ function selectAnimation(anim) {
     html+=`<div class="form-group"><label>延迟/s</label>
     <input type="number" step="0.1" min="0" value="${anim.delay}" onchange="updateAnimation('delay', this.value)">
     </div>`;
-    let prop=copy(props['anim'][anim.type]);
+    let prop=copy(props['anim'][anim.action][anim.type]);
     for(let key in anim.prop){
+        if(!(key in prop)) delete anim.prop[key];
+        
         prop[key].value=anim.prop[key];
     }
     for(let key in prop){
@@ -507,38 +511,27 @@ function selectAnimation(anim) {
         html+=`</div>`;
     }
 
-    html+=`<button class="preview-btn" onclick="previewAnimation()">预览动画</button>`;
+    html+=`<button class="preview-btn" onclick="previewAnimation(this);"><i class="bi bi-play"></i> 预览动画</button>`;
     
     $('.animation-editor .editor').html(html);
-
-    // 加载动画属性
-    // $('.animation-editor select[onchange*="type"]').val(anim.type);
-    // $('.animation-editor select[onchange*="action"]').val(anim.action);
-    // $('.animation-editor input[onchange*="duration"]').val(anim.duration);
-    // $('.animation-editor input[onchange*="delay"]').val(anim.delay);
-    // if (anim.type === 'fly') {
-    //     $('.animation-editor .direction-select').show();
-    //     $('.animation-editor select[onchange*="direction"]').val(anim.direction);
-    // } else {
-    //     $('.animation-editor .direction-select').hide();
-    // }
 }
 
 function updateAnimation(prop, value) {
     if (!selectedAnimation) return;
-    console.log(prop,value);
 
     selectedAnimation[prop] = value;
-    if (prop == 'type' && value == 'fly') {
-        for(let key in prop.anim[value]){
+    if (prop == 'type' || prop == 'action') {
+        for(let key in props.anim[selectedAnimation.action][selectedAnimation.type]){
             if(!selectedAnimation.prop.includes(key)){
-                selectedAnimation.prop[key]=prop.anim[value][key].default;
+                selectedAnimation.prop[key]=props.anim[selectedAnimation.action][selectedAnimation.type][key].default;
             }
         }
     }
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
-    loadAnimation();
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        // file = data;
+        loadAnimation();
+    });
 }
 
 function addTimeNode() {
@@ -547,40 +540,101 @@ function addTimeNode() {
         actions: []
     });
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
-    loadAnimation();
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        // file = data;
+        loadAnimation();
+    });
 }
 
 function deleteNode(index) {
     file.animation.onclick.splice(index, 1);
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
-    loadAnimation();
-}
 
-function showAddAnimation(nodeIndex) {
-    // selectedNode = nodeIndex;
-    file.animation.onclick[nodeIndex].actions.push({
-        target: selected,
-        type: 'fadein',
-        duration: 1,
-        delay: 0
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(data=>{
+        // file = data;
+        loadAnimation();
     });
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
-    loadAnimation();
 }
 
-function deleteAnimation(type, nodeIndex, targetId, animIndex) {
-    if (type === 'onload') {
-        file.animation.onload = file.animation.onload.filter(a => a.target !== targetId);
+function showAddAnimation(type, nodeIndex) {
+    $('#addAnimation>.body').html(`
+            <div class="form-group">
+                <label>操作分类</label>
+                <selectbox onclick="show(this)" onchange="updateAnimationTypes(this.value,'${type}',${nodeIndex})">
+                    <option value="in" selected>入</option>
+                    <option value="out">出</option>
+                </selectbox>
+            </div>
+            <div class="animation-types list"></div>`);
+    $('#addAnimation').show();
+    updateAnimationTypes('in',type,nodeIndex);
+}
+
+function updateAnimationTypes(action,typee,nodeIndex) {
+    const types = allanimtype[action];
+    let html = '';
+    types.forEach(type => {
+        html += `<div class="animation-type item" onclick="addNewAnimation('${typee}',${nodeIndex},'${action}', '${type}')">
+            ${type}
+        </div>`;
+    });
+    $('#addAnimation .animation-types').html(html);
+}
+
+function addNewAnimation(type,nodeindex,action,anitype) {
+    const animation = {
+        target: selected,
+        action: action,
+        type: anitype,
+        delay: 0,
+        prop: {}
+    };
+
+    // 设置默认属性
+    const animProps = props.anim[action][anitype];
+    for (let key in animProps) {
+        animation.prop[key] = animProps[key].default;
+    }
+
+    // if (selectedNode !== null) {
+    //     file.animation.onclick[selectedNode].actions.push(animation);
+    // } else {
+    //     file.animation.onload.push(animation);
+    // }
+    if (type == 'onload') {
+        file.animation.onload.push(animation);
+    } else {
+        file.animation.onclick[nodeindex].actions.push(animation);
+    }
+
+    $('#addAnimation').hide();
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
+        // file = data;
+        loadAnimation();
+    });
+}
+
+function deleteAnimation(type, nodeIndex, animIndex) {
+    if (type == 'onload') {
+        file.animation.onload.splice(animIndex, 1);
     } else {
         file.animation.onclick[nodeIndex].actions.splice(animIndex, 1);
     }
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
-    loadAnimation();
+
+    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+        // file = data;
+        loadAnimation();
+    });
 }
 
-function previewAnimation() {
-    console.log('under developing');
+function previewAnimation(t) {
+    if (!selectedAnimation) return;
+    if(t.innerText == '预览动画') {
+        $('#page')[0].contentWindow.previewAnimation(selectedAnimation);
+        $(t).html('<i class="bi bi-x"></i> 关闭预览');
+    }else{
+        $('#page')[0].contentWindow.closePreview();
+        $(t).html('<i class="bi bi-play"></i> 预览动画');
+    }
 }
 
 function getpageoffset(){
@@ -618,6 +672,59 @@ function copyPage(i){
     });
 }
 
+// let pgnow=0;
+// 初始化页面拖放排序
+function initPageDragSort() {
+    const pageList = document.querySelector('#pages>.list');
+    if (!pageList) return;
+
+    pageList.addEventListener('dragstart', e => {
+        if (!e.target.classList.contains('item')) return;
+        e.target.classList.add('dragging');
+    });
+
+    pageList.addEventListener('dragend', e => {
+        if (!e.target.classList.contains('item')) return;
+        e.target.classList.remove('dragging');
+    });
+
+    pageList.addEventListener('dragover', e => {
+        e.preventDefault();
+        const draggingItem = pageList.querySelector('.dragging');
+        if (!draggingItem) return;
+        
+        const siblings = [...pageList.querySelectorAll('.item:not(.dragging)')];
+        const nextSibling = siblings.find(sibling => {
+            return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
+        });
+        // if (nextSibling)
+        // pgnow=parseInt(nextSibling.getAttribute('data-index'));
+        pageList.insertBefore(draggingItem, nextSibling);
+    });
+
+    pageList.addEventListener('drop', e => {
+        const items = [...pageList.querySelectorAll('.item')];
+        const newOrder = items.map(item => {
+            return parseInt(item.getAttribute('data-index'));
+        });
+        
+        $.post('/api/reorderpages', JSON.stringify({order: newOrder})).done(data => {
+            if (data.status=='ok') {
+                window.location.reload();
+            }
+        });
+    });
+}
+
+// 初始化页面时添加拖放功能
+document.addEventListener('DOMContentLoaded', () => {
+    initPageDragSort();
+    const items = document.querySelectorAll('#pages>.list>.item');
+    items.forEach((item, index) => {
+        item.setAttribute('draggable', true);
+        item.setAttribute('data-index', index);
+    });
+});
 
 document.body.onload=()=>{
     $('#zoompage').val(50);
@@ -636,3 +743,44 @@ for (let i = 0; i < pgnum; i++) {
         </contextmenu>
     </span>`);
 }
+
+// 图片上传和处理相关代码
+function uploadImage() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+
+        $.ajax({
+            url: '/api/upload',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: data => {
+                if(data.status === 'ok') {
+                    addImageElement(data.url);
+                }
+            }
+        });
+    };
+    input.click();
+}
+
+function addImageElement(url) {
+    $.post(`/api/${pg}/add`, JSON.stringify({ type: 'image' }))
+    .done(data => {
+        file = data;
+        const element = file.elements[file.elements.length - 1];
+        element.prop.src = url;
+        element.prop.objectFit = 'contain';  // 设置默认填充方式
+        $.post(`/api/${pg}/update`, JSON.stringify(file))
+        .done(() => {
+            $('#page')[0].contentWindow.loadpage('#ele-' + element.id);
+        });
+    });
+}
+

@@ -1,0 +1,9 @@
+django
+json
+uuid
+os
+base64
+mimetypes
+pathlib
+htmlmin
+tkinter

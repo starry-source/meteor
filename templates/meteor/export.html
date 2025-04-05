@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- 使用 Meteor 制作 -->
+ 
 <html>
 <head>
     <meta charset="UTF-8">
@@ -13,6 +15,8 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            cursor:default !important;
+            user-select: none;
         }
         .page {
             display: none;
@@ -26,37 +30,75 @@
             position: absolute !important;
             /* display: block; */
             /* opacity: 0; */
-            display: none;
-            pointer-events: none;
-        }
-        .element.active {
-            /* opacity: 1; */
             display: block;
-            pointer-events: auto;
+            pointer-events: none;
         }
         #container {
             position: absolute;
             transform-origin: left top;
         }
+        #contextmenu {
+    border-radius: 7px;
+    background-color: #f9f9f9c0;
+    backdrop-filter: blur(20px);
+    box-shadow: #0000001f 0 4px 9px;
+    flex-direction: column !important;
+    flex-wrap: nowrap;
+    padding: 2px 5px;
+    width: max-content;
+    min-width: 150px;
+    font-size: 13.5px;
+    position: fixed;
+    z-index: 99;
+    border: 1.5px solid #7f7f7f20;
+    /* opacity: 0; */
+    overflow-y: auto;
+    display: none;
+}
+
+#contextmenu.show{
+    display: flex;
+    /* animation: fadeIn 200ms ease-out; */
+}
+
+#contextmenu>.option {
+    /* display: flex; */
+    border-radius: 5px;
+    transition: 50ms;
+    padding: 2px 10px;
+    margin: 1px;
+}
+
+#contextmenu>.option:hover {
+    background-color: #7f7f7f1a;
+}
+
+#contextmenu>.option:active {
+    opacity: 0.6;
+}
+
+#contextmenu>.option.disable {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+#contextmenu>.text {
+    font-size: 13px;
+    color: #333;
+    padding: 5px 7px;
+    white-space: pre-wrap;
+}
+
+#contextmenu>hr{
+    border: none;
+    height: 1px;
+    background-color: #7f7f7f30;
+    margin: 2px 0;
+}
+
 
         {{ tagcss|safe }}
 
-        @keyframes fadein {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes fadeout {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        @keyframes show {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes hide {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
     </style>
 </head>
 <body>
@@ -70,63 +112,64 @@
             <p style="text-align: center;color: #fff;font-size: 20px;">演示文稿放映结束</p>
         </div>
     </div>
+    <div id="contextmenu">
+        <span class="option" onclick="prev()">上一页</span>
+        <span class="option" onclick="next()">下一页</span>
+        <span class="option" onclick="closewindow()">结束放映</span>
+    </div>
     <script>
-        let currentPage = 0;
-        const pages = document.querySelectorAll('.page');
+        let currentPage = -1;
         const pageData={{ data|safe }};
-        let clickIndex = 0;
-        
-        function playAnimations(animations, skipAnimation = false) {
-            animations.forEach(anim => {
-                const element = document.querySelector(`#ele-${anim.target}`);
-                if(!element) return;
-                
-                const duration = anim.prop?.duration || 1;
-                const delay = anim.delay;
-                
-                if(skipAnimation) {
-                    // 直接设置最终状态，不播放动画
-                    if(['show', 'fadein'].includes(anim.type)) {
-                        element.classList.add('active');
-                    } else if(['hide', 'fadeout'].includes(anim.type)) {
-                        element.classList.remove('active');
+        const pages=document.querySelectorAll('#container>.page')
+        let animIndex=-1; // 添加动画索引
+        const animStyle={
+            in:{
+                fade:{
+                    transition:'var(--anim-prop-duration) var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'0'
+                        },
+                        after:{
+                            'opacity':'1'
+                        }
                     }
-                    element.style.animation = '';
-                    return;
+                },
+                no:{
+                    transition:'0ms var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'0'
+                        },
+                        after:{
+                            'opacity':'1'
+                        }
+                    }
                 }
-                
-                setTimeout(() => {
-                    if(['show', 'fadein'].includes(anim.type)) {
-                        element.classList.add('active');
-                    } else if(['hide', 'fadeout'].includes(anim.type)) {
-                        setTimeout(() => {
-                            element.classList.remove('active');
-                        }, duration*1000);
+            },
+            out:{
+                fade:{
+                    transition:'var(--anim-prop-duration) var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'1'
+                        },
+                        after:{
+                            'opacity':'0'
+                        }
                     }
-                    element.style.animation = `${anim.type} ${duration}s forwards`;
-                }, delay * 1000);
-            });
-        }
-
-        function showPage(index, skipAnimation = false) {
-            pages.forEach(page => page.classList.remove('active'));
-            pages[index].classList.add('active');
-            
-            // 重置所有元素状态
-            const elements = pages[index].querySelectorAll('.element');
-            elements.forEach(element => {
-                element.classList.remove('active');
-                element.style.animation = '';
-            });
-
-            // 没有动画的元素默认显示
-            if(!pageData[index].animation?.onload?.length) {
-                elements.forEach(element => element.classList.add('active'));
-            }
-            
-            // 播放onload动画
-            if(pageData[index].animation?.onload) {
-                playAnimations(pageData[index].animation.onload, skipAnimation);
+                },
+                no:{
+                    transition:'0ms var(--anim-delay)',
+                    change:{
+                        before:{
+                            'opacity':'1'
+                        },
+                        after:{
+                            'opacity':'0'
+                        }
+                    }
+                }
             }
         }
 
@@ -141,58 +184,171 @@
             container.style.top = `${(window.innerHeight - page.offsetHeight * scale) / 2}px`;
         }
         
-        function next() {
-            const currentpageData = pageData[currentPage];
-            if(currentpageData.animation?.onclick && clickIndex < currentpageData.animation.onclick.length) {
-                playAnimations(currentpageData.animation.onclick[clickIndex].actions);
-                clickIndex++;
-                return false;
-            }
-            if(currentPage >= pages.length - 1) return true;
-            currentPage++;
-            clickIndex = 0;
-            showPage(currentPage);
-            return false;
+        
+        function showPage(index) {
+            currentPage = index;
+            
+            pages.forEach((page, i) => {
+                page.classList.remove('active');
+                if (i == index) {
+                    page.classList.add('active');
+                }
+            });
         }
 
-        function prev() {
-            if(clickIndex > 0) {
-                clickIndex--;
-                showPage(currentPage, true); // 重新加载当前页，跳过动画
-                // 直接应用之前所有动画的最终状态
-                for(let i = 0; i < clickIndex; i++) {
-                    playAnimations(pageData[currentPage].animation.onclick[i].actions, true);
-                }
-                return false;
-            }
-            if(currentPage <= 0) return true;
-            currentPage--;
-            const currentpageData = pageData[currentPage];
-            clickIndex = currentpageData.animation?.onclick?.length || 0;
-            showPage(currentPage, true);
-            // 直接应用所有动画的最终状态
-            if(clickIndex > 0) {
-                for(let i = 0; i < clickIndex; i++) {
-                    playAnimations(currentpageData.animation.onclick[i].actions, true);
-                }
-            }
-            return false;
+
+        function playAnim(index){
+            const anim=pageData[currentPage].animation.onclick[index];
+            anim.actions.forEach(action=>{
+                const target=document.querySelectorAll('.page')[currentPage].querySelector('#ele-'+action.target);
+                const animDef=animStyle[action.action][action.type];
+                
+                target.style.transition='none';
+                // target.style.display='block';
+                
+                // 设置动画属性
+                target.style.setProperty('--anim-delay', action.delay+'s');
+                target.style.setProperty('--anim-prop-duration', action.prop.duration+'s');
+                
+                // 设置初始状态
+                Object.assign(target.style, animDef.change.before);
+                
+                // 强制重排
+                target.offsetHeight;
+                
+                // 设置动画过渡
+                target.style.transition=animDef.transition;
+                
+                // 设置结束状态
+                Object.assign(target.style, animDef.change.after);
+            });
         }
 
+        function next(){
+            if(currentPage===-1){
+                currentPage=0;
+                showPage(0);
+                // 播放onload动画
+                pageData[0].animation.onload.forEach(action=>{
+                    const target=document.querySelectorAll('.page')[0].querySelector('#ele-'+action.target);
+                    const animDef=animStyle[action.action][action.type];
+                    
+                    // target.style.display='block';
+                    target.style.setProperty('--anim-delay', action.delay+'s');
+                    target.style.setProperty('--anim-prop-duration', action.prop.duration+'s');
+                    Object.assign(target.style, animDef.change.before);
+                    target.offsetHeight;
+                    target.style.transition=animDef.transition;
+                    Object.assign(target.style, animDef.change.after);
+                });
+                return false;
+            }
+            
+            if(animIndex < pageData[currentPage].animation.onclick.length-1){
+                animIndex++;
+                playAnim(animIndex);
+                return false;
+            }
+            
+            if(currentPage < pageData.length){
+                currentPage++;
+                animIndex=-1;
+                showPage(currentPage);
+                return false;
+            }
+            
+            return true;
+        }
+
+        function prev(){
+            if(animIndex > -1){
+                // 回退动画状态
+                const anim=pageData[currentPage].animation.onclick[animIndex];
+                anim.actions.forEach(action=>{
+                    const target=document.querySelectorAll('.page')[currentPage].querySelector('#ele-'+action.target);
+                    const animDef=animStyle[action.action][action.type];
+                    
+                    target.style.transition='none';
+                    Object.assign(target.style, animDef.change.before);
+                });
+                animIndex--;
+                
+                if(animIndex >= 0){
+                    // 恢复上一个动画的结束状态
+                    const prevAnim=pageData[currentPage].animation.onclick[animIndex];
+                    prevAnim.actions.forEach(action=>{
+                        const target=document.querySelectorAll('.page')[currentPage].querySelector('#ele-'+action.target);
+                        const animDef=animStyle[action.action][action.type];
+                        Object.assign(target.style, animDef.change.after);
+                    });
+                }
+            } else if(currentPage > 0){
+                currentPage--;
+                animIndex=pageData[currentPage].animation.onclick.length-1;
+                showPage(currentPage);
+            }
+        }
+
+
+        function closewindow() {
+            try {
+                window.close(); // 标准方法
+            } catch(e) {}
+            
+            try {
+                window.parent.close(); // 父窗口关闭
+            } catch(e) {}
+
+            try {
+                window.open('', '_self').close(); // 自关闭
+            } catch(e) {}
+
+            try {
+                window.location.href = 'about:blank'; // 重定向到空白页
+            } catch(e) {}
+        }
         document.addEventListener('click', () => {
-            if(next()) window.close();
+            if(document.getElementById('contextmenu').classList.contains('show')) {
+                document.getElementById('contextmenu').classList.remove('show');
+                return;
+            }
+            if(next()) closewindow()
         });
 
         document.addEventListener('keydown', (e) => {
             if(e.key === 'ArrowLeft') prev();
             else if(e.key === 'ArrowRight' || e.key === ' ') {
-                if(next()) window.close();
+                if(next()) closewindow()
             }
         });
+        function init(){
+            currentPage=pages.length-1;
+            animIndex=-1;
+            while(currentPage>0 || animIndex>-1){
+                prev();
+            }
+            currentPage=-1;
+            animIndex=-1;
+            next();
 
+        }
+        init();
         window.addEventListener('resize', fitScreen);
-        showPage(0);
+        // next();
         fitScreen();
+        function showcm(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let ex = e.clientX, ey = e.clientY;
+            document.getElementById('contextmenu').style.top = ey + 'px';
+            document.getElementById('contextmenu').style.left = ex + 'px';
+            document.getElementById('contextmenu').classList.add('show');
+        }
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showcm(e);
+        });
     </script>
 </body>
 </html>
