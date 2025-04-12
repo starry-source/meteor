@@ -12,15 +12,16 @@
 button {
     appearance: none;
     background-color: #7f7f7f20;
-    padding: 3px 8px;
+    padding: 3px 10px;
     border-radius: 7px;
     outline: none;
-    transition: 100ms;
+    transition: 80ms;
     border: none;
     display: inline-flex;
     gap: 3px;
     align-items: center;
     justify-content: center;
+    font-size: 15px;
 }
 
 button.ok {
@@ -49,6 +50,7 @@ input:not([type=range]) {
     border-radius: 7px;
     padding: 2px 7px;
     background: transparent;
+    width: 100%;
 }
 
 input[type=color] {
@@ -293,7 +295,7 @@ info{
     display: flex;
     align-items: center;
     gap: 5px;
-    transition: 50ms;
+    transition: 80ms;
     padding: 3px 8px;
     border-radius: 5px;
 }
@@ -311,19 +313,53 @@ info{
     color: #fff;
 }
 
+.list.vb>.main{
+    background-color: #2983cc;
+    color: #fff;
+}
+
+.list.vb>.main:hover{
+    background-color: #3693df;
+}
+
+.list.vb>*{
+    flex-direction: column;
+}
+
+.list.vb>*>svg{
+    height: 16px;
+    margin: 6px 0 -1px 0;
+}
+
+
+#modals{
+    width: 100%;
+    /* height: 100%; */
+    height: min-content;
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* background-color: #00000020; */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
 
 /* 对话框 */
 .modal {
-    position: fixed;
-    top: 20px;
+    margin-top: 20px;
     width: 30%;
-    left: 35%;
-    background-color: #fffcfa;
+    min-width: min-content;
+    /* background-color: #fffcfa; */
+    background-color: #f9f9f9;
     display: none;
-    box-shadow: #00000020 0 5px 13px;
-    padding: 10px;
-    border-radius: 8px;
-    animation: modalin 200ms ease-out;
+    /* box-shadow: #00000020 0 5px 13px; */
+    box-shadow: inset 0 3px 3px #ffffff80, 0 10px 30px -3px #00000038;
+    border: 2px solid #dfdfdf;
+    padding: 20px;
+    border-radius: 16px;
+    animation: modalin 300ms cubic-bezier(0.1, 0.5, 0.2, 1);
 }
 
 @keyframes modalin {
@@ -341,7 +377,20 @@ info{
 }
 
 .modal>.body {
-    margin: 10px 5px;
+    margin: 10px 5px 0 5px;
+}
+
+.modal>.buttons{
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    height: 30px;
+    margin-top: 15px;
+    gap: 5px;
+}
+.modal>.buttons>button{
+    display: block;
+    flex-grow: 1;
 }
 
 /* 工具栏 */
@@ -349,29 +398,28 @@ info{
     width: 100%;
     display: flex;
     flex-wrap: wrap;
-    overflow: hidden;
     min-height: 40px;
-    height: 40px;
-    max-height: 40px;
+    overflow: hidden;
+    /* height: 40px; */
+    /* max-height: 40px; */
     padding: 5px 2px 5px 2px;
     align-items: center;
+    gap: 5px;
 }
 
 #toolbar>.b {
-    height: 100%;
+    height: 30px;
     overflow: hidden;
     border-radius: 7px;
-    background-color: #fff;
     box-shadow: #00000040 0 1px 2px;
-    margin-right: 5px;
     display: flex;
     padding: 2px;
     align-items: center;
 }
 
 #toolbar>.b>.bt {
-    border-radius: 5px;
-    transition: 80ms;
+    border-radius: 6px;
+    transition: 100ms;
     font-size: 14px;
     margin-right: 2px;
 }
@@ -381,7 +429,7 @@ info{
 }
 
 #toolbar>.b>.bt:hover {
-    background-color: #7f7f7f30;
+    background-color: #7f7f7f20;
 }
 
 #toolbar>.b>.bt:active {
@@ -438,12 +486,12 @@ info{
 
 #tools>.group>.fun>.ts {
     border-radius: 5px;
-    transition: 50ms;
-    cursor: pointer;
+    transition: 80ms;
+    /* cursor: pointer; */
 }
 
 #tools>.group>.fun>.ts:hover {
-    background-color: #7f7f7f20;
+    background-color: #7f7f7f10;
 }
 
 #tools>.group>.fun>.ts:active {
@@ -546,14 +594,17 @@ info{
     align-items: center;
     padding: 1px 10px !important;
     gap: 5px;
+    overflow: hidden;
 }
 
 .form-group>label {
     word-break: keep-all;
+    width: max-content;
 }
 
 .form-group>.form-control:not([type=color]):not(selectbox) {
     flex-grow: 1;
+    min-width: 100px;
 }
 
 .form-group>button {
@@ -566,11 +617,20 @@ info{
 
 #page {
     width: 100%;
-    flex-grow: 1;
-    background: transparent;
+    height: 100%;
     overflow: auto;
     border: none;
 }
+
+#mainpage>.ctr>.container{
+    flex-grow: 1;
+    background: transparent;
+    width: 100%;
+    /* border: 3px solid #2983cc; */
+    overflow: hidden;
+    border-radius: 9px;
+}
+
 
 /* :root.disable #page{
     pointer-events: none;
@@ -591,43 +651,49 @@ info{
 }
 
 .animation-panel .timeline {
-    width: 250px;
-    border-right: 1px solid #eee;
+    width: 240px;
+    min-height: 240px;
+    border-right: 1px solid #e0e0e0;
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
+    padding-right: 7px;
+}
+
+.animation-panel .timeline>*{
+    margin-bottom: 10px;
 }
 
 .animation-panel .animation-list {
-    border-left: 2px solid #ddd;
-    margin-left: 5px;
-    padding-left: 10px;
+    border-left: 2px solid #2983cc;
+    margin-left: 8px;
+    padding-left: 7px;
 }
 
 .animation-panel .nodes {
-    margin: 5px 0;
+    margin: 7px 0;
 }
 
 .animation-panel .node {
-    background: #f5f5f5;
-    border-radius: 4px;
-    padding: 8px;
+    /* background: #f5f5f5; */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 10px;
     margin: 5px 0;
-    cursor: pointer;
 }
 
-.animation-panel .node-header {
+/* .animation-panel .node-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 5px;
-}
+} */
 
-.animation-panel .node.selected {
-    background: #2983cc20;
-}
+/* .animation-panel .node.selected {
+    background: #2983cc90;
+} */
 
-.animation-panel .animation-item {
+/* .animation-panel .animation-item {
     padding: 3px 8px;
     margin: 2px 0;
     border-radius: 4px;
@@ -635,11 +701,11 @@ info{
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
+} */
 
-.animation-panel .animation-item:hover {
+/* .animation-panel .animation-item:hover {
     background: #f5f5f5;
-}
+} */
 
 .animation-panel .animation-item.selected {
     background: #2983cc20;
@@ -660,6 +726,19 @@ info{
     display: none;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+.animation-panel .editor>*{
+    animation: showeditor 200ms;
+}
+
+@keyframes showeditor {
+    from{
+        opacity: 0;
+    }
+    to{
+        opacity: 1;
+    }
 }
 
 .animation-panel .no-selection {

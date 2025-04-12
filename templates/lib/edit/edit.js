@@ -3,6 +3,7 @@ let selectedIndex = null;
 let selectedAnimation = null;
 // let selectedNode = null;
 let clipboard = null;
+const frame = $('#page')[0].contentWindow;
 
 document.addEventListener('contextmenu', e=>{
     e.preventDefault();
@@ -13,6 +14,10 @@ function copy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+function updateFile(){
+    return $.post(`/api/${pg}/update`, JSON.stringify(file));
+}
+
 // 更新位置，在 page.html 中调用
 function updatePosition(id, x, y) {
     file.elements.forEach(element => {
@@ -21,7 +26,7 @@ function updatePosition(id, x, y) {
             element.y = y;
         }
     });
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
+    updateFile();
 }
 
 // 更新大小，在 page.html 中调用
@@ -32,7 +37,7 @@ function updateSize(id, w, h) {
             element.width = w;
         }
     });
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
+    updateFile();
 }
 
 // 更新元素层级，在 page.html 中调用
@@ -64,8 +69,8 @@ function updateElementsOrder(elementid, type) {
     }
 
     // 同步后端
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
-        $('#page')[0].contentWindow.loadpage('#ele-' + selected);
+    updateFile().done(() => {
+        frame.loadpage('#ele-' + selected);
     });
 }
 
@@ -74,24 +79,32 @@ function select(id) {
     selected = id;
     selectedIndex = null;
     loadAnimation();
-    if (id == null) {
-        $('.select-then-enable.able').removeClass('able');
-        $('#prop>.props').html('');
-        // $('#prop>.props').html('');
-        $('#sty').html('<info style="width:100%;text-align:center;margin-top:20px">暂不可对页面设置样式。</info>');
-        // $('#animation .animation-panel').hide();
+
+    // 多选时隐藏属性和样式面板
+    if (!id) {
+        $('.select-then-enable.able, .select-one-then-enable.able').removeClass('able');
+        $('#prop>.props').html('<info style="width:100%;text-align:center;width:100%;display:block;margin-top:10px">不可用</info>');
+        $('#sty').html('<info style="width:100%;text-align:center;margin-top:20px">不可以</info>');
         return;
     }
-    $('.select-then-enable').addClass('able');
 
+    $('.select-then-enable, .select-one-then-enable').addClass('able');
     file.elements.forEach(e => {
         if (e.id != id) return;
         selectedIndex = file.elements.indexOf(e);
-        // console.log(selected, selectedIndex);
         loadprop(e, id);
         loadstyle(e, id);
         loadTags();
     });
+}
+
+function selectmult(){
+    selected = null;
+    selectedIndex = null;
+    $('.select-then-enable').addClass('able');
+    $('.select-one-then-enable').addClass('able');
+    $('#prop>.props').html('<info style="width:100%;text-align:center;width:100%;display:block;margin-top:10px">不可用</info>');
+    $('#sty').html('<info style="width:100%;text-align:center;margin-top:20px">不可以</info>');
 }
 
 // 加载属性面板内容，在 select, selectTag 中调用
@@ -186,8 +199,8 @@ function setprop(id, key, value, tag = false) {
             e.prop[key] = value;
         }
     });
-    $.post(`/api/${pg}/update`, JSON.stringify(file));
-    $('#page')[0].contentWindow.loadpage('#ele-' + id);
+    updateFile();
+    frame.loadpage('#ele-' + id);
 }
 
 // 显示添加样式的对话框
@@ -195,7 +208,7 @@ function addstyle(id, key, key2, tag = false) {
     $('#addstyle').show();
     $('#addstyle>.tit>.key').text(stylem[key].name);
     $('#addstyle>.tit>.key2').text(stylem[key][key2].name);
-    $('#addstyle>.ok').click(() => { setstyle(id, key, key2, $('#addstyle>.body>.value>*').val(), tag) });
+    $('#addstyle>.buttons>.ok').click(() => { setstyle(id, key, key2, $('#addstyle>.body>.value>*').val(), tag) });
     if (stylem[key][key2].type == 'select') {
         styleedit = `<selectbox onclick="show(this)" class="form-control ${key2}">`;
         stylem[key][key2].options.forEach(option => {
@@ -215,11 +228,11 @@ function setstyle(id, key, key2, value, tag = false) {
     if (tag) {
         tags[id].style[key + '.' + key2] = value;
         $.post(`/api/updatetag`, JSON.stringify(tags)).done(() => {
-            $('#page')[0].contentWindow.loadpage(selected = false);
+            frame.loadpage(selected = false);
             loadTags();
             selectTag(id);
         });
-        $('#addstyle>.ok').off('click');
+        $('#addstyle>.buttons>.ok').off('click');
         $('#addstyle').hide();
         return;
     }
@@ -229,10 +242,10 @@ function setstyle(id, key, key2, value, tag = false) {
         }
     });
     // console.log(file);
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
-        $('#page')[0].contentWindow.loadpage('#ele-' + id);
+    updateFile().done(() => {
+        frame.loadpage('#ele-' + id);
     });
-    $('#addstyle>.ok').off('click');
+    $('#addstyle>.buttons>.ok').off('click');
     $('#addstyle').hide();
 }
 
@@ -241,7 +254,7 @@ function delstyle(id, key, key2, tag = false) {
     if (tag) {
         delete tags[id].style[key + '.' + key2];
         $.post(`/api/updatetag`, JSON.stringify(tags)).done(() => {
-            $('#page')[0].contentWindow.loadpage(selected = false);
+            frame.loadpage(selected = false);
             loadTags();
             selectTag(id);
         });
@@ -252,8 +265,8 @@ function delstyle(id, key, key2, tag = false) {
             delete e.style[key + '.' + key2];
         }
     });
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
-        $('#page')[0].contentWindow.loadpage('#ele-' + id);
+    updateFile().done(() => {
+        frame.loadpage('#ele-' + id);
     });
 }
 
@@ -295,8 +308,8 @@ function addTagToElement(name) {
         e.tags.push(name);
     }
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
-        $('#page')[0].contentWindow.loadpage('#ele-' + selected);
+    updateFile().done(() => {
+        frame.loadpage('#ele-' + selected);
     });
 }
 
@@ -312,16 +325,22 @@ function toggle_style_page(page) {
 function addEle(type) {
     $.post(`/api/${pg}/add`, JSON.stringify({ type: type })).done(data => {
         file = data;
-        $('#page')[0].contentWindow.loadpage('#ele-' + file.elements[file.elements.length - 1].id);
+        frame.loadpage('#ele-' + file.elements[file.elements.length - 1].id);
     });
 }
 
 // 删除选中的元素
-function delEle(id) {
-    $.post(`/api/${pg}/delete`, JSON.stringify({ id: id })).done(data => {
-        file = data;
-        $('#page')[0].contentWindow.loadpage();
-    });
+function delEle() {
+    if (frame.selectedElements?.length > 0) {
+        const elementIds = frame.selectedElements.map(el => el.dataset.id);
+        $.post(`/api/${pg}/delete`, JSON.stringify({
+            elements: elementIds.map(id => ({ id }))
+        }))
+        .done(data => {
+            file = data;
+            frame.loadpage(null);
+        });
+    }
 }
 
 // 显示新元素，在对话框的确定按钮被调用
@@ -334,7 +353,7 @@ function addNewTag(name) {
     $('#addtag>.body>.tag').val('');
     $.post(`/api/addtag`, JSON.stringify({ name: name })).done(data => {
         tags = data;
-        $('#page')[0].contentWindow.loadpage();
+        frame.loadpage();
     });
 }
 
@@ -394,7 +413,7 @@ function showcm(){
             $('#contextmenu').append(`<span class="text">${option.innerText}</span>`);
             return;
         }
-        $('#contextmenu').append(`<div class="option ${disable ?'disable':''}" onclick="${option.getAttribute('onclick')}">${option.innerText}</div>`);
+        $('#contextmenu').append(`<div class="option ${disable ?'disable':''}" onclick="${option.getAttribute('onclick')}">${option.innerHTML}</div>`);
     });
     $('#contextmenu').css('top', ey);
     $('#contextmenu').css('left', ex);
@@ -412,7 +431,7 @@ function showcm(){
 
 // 缩放页面
 function zoompage(z) {
-    $('#page')[0].contentWindow.zoom(z / 100);
+    frame.zoom(z / 100);
     $('#page').css('zoom', z / 100);
 }
 
@@ -422,54 +441,55 @@ function loadAnimation() {
     // 加载onload动画
     let html = '';
     file.animation.onload.forEach((anim,i) => {
-        html += `<div class="animation-item ${anim.target == selected ? 'selected' : ''}" 
-            onclick="selectAnimation('onload',null,${i})">
-            <span>${anim.type}</span>
-            <button onclick="event.stopPropagation();deleteAnimation('onload', null, ${i})">
-                <i class="bi bi-trash"></i>
-            </button>
+        html += `<div class="animation-item item ${anim.target == selected ? 'selected' : ''}" 
+            onclick="selectAnimation('onload',null,${i})" oncontextmenu="showcm(event,this)">
+            <span>${allanimtype[anim.action][anim.type].name}</span>
+            <contextmenu>
+                <p onclick="event.stopPropagation();deleteAnimation('onload', null, ${i})">删除动画</p>
+            </contextmenu>
         </div>`;
     });
     $('.animation-panel .onload .animation-list').html(html+`
-                <button onclick="showAddAnimation('onload',null)">添加动画</button>`);
+                <button onclick="showAddAnimation('onload',null)"><i class="bi bi-plus"></i>添加动画</button>`);
 
     // 加载onclick节点
     html = '';
     file.animation.onclick.forEach((node, index) => {
         let animHtml = '';
         node.actions.forEach((anim, i) => {
-            animHtml += `<div class="animation-item ${anim.target == selected ? 'selected' : ''}" 
-                onclick="event.stopPropagation();selectAnimation('onclick', ${index}, ${i})">
-                <span>${anim.type}</span>
-                <button onclick="event.stopPropagation();deleteAnimation('onclick', ${index}, ${i})">
-                    <i class="bi bi-trash"></i>
-                </button>
+            animHtml += `<div class="animation-item item ${anim.target == selected ? 'selected' : ''}" 
+                onclick="event.stopPropagation();selectAnimation('onclick', ${index}, ${i})" oncontextmenu="showcm(event,this)">
+                <span>${allanimtype[anim.action][anim.type].name}</span>
+                <contextmenu>
+                    <p onclick="deleteAnimation('onclick', ${index}, ${i})">删除动画</p>
+                </contextmenu>
             </div>`;
         });
         
         html += `<div class="node">
-            <div class="node-header">
+            <div class="node-header" oncontextmenu="showcm(event,this)">
                 <span>${node.name}</span>
-                <button onclick="event.stopPropagation();deleteNode(${index})">
-                    <i class="bi bi-trash"></i>
-                </button>
+                <contextmenu>
+                    <p onclick="deleteNode(${index})">删除节点</p>
+                </contextmenu>
             </div>
-            <div class="animation-list">
+            <div class="animation-list list">
                 ${animHtml}
-                <button onclick="showAddAnimation('onclick',${index})">添加动画</button>
+                <button onclick="showAddAnimation('onclick',${index})"><i class="bi bi-plus"></i>添加动画</button>
             </div>
         </div>`;
     });
     $('.animation-panel .onclick .nodes').html(html);
 }
 
-function selectAnimation(type, nodeIndex, animIndex) {
+function selectAnimation(type, nodeIndex, animIndex, anim=null) {
     if (type == 'onload') {
         anim = file.animation.onload[animIndex];
     }else if (type == 'onclick') {
         anim = file.animation.onclick[nodeIndex].actions[animIndex];
     }
     selectedAnimation=anim;
+    frame.selectElement('#ele-' + anim.target);
 
     $('.animation-editor .no-selection').hide();
     $('.animation-editor .editor').show();
@@ -477,13 +497,16 @@ function selectAnimation(type, nodeIndex, animIndex) {
     html='';
     html+=`<div class="form-group"><label>类型</label>
     <selectbox onclick="show(this)" onchange="updateAnimation('action', this.value)">
-    <option value="in" ${anim.action=='in'?'selected':''}>in</option>
-    <option value="out" ${anim.action=='out'?'selected':''}>out</option>
+    <option value="in" ${anim.action=='in'?'selected':''}>入</option>
+    <option value="out" ${anim.action=='out'?'selected':''}>出</option>
     </selectbox>
     <selectbox onclick="show(this)" onchange="updateAnimation('type', this.value)">`;
-    allanimtype[anim.action].forEach(type => {
-        html+=`<option value="${type}" ${anim.type==type?'selected':''}>${type}</option>`;
-    });
+    // allanimtype[anim.action].forEach(type => {
+    //     html+=`<option value="${type}" ${anim.type==type?'selected':''}>${type}</option>`;
+    // });
+    for(let animname in allanimtype[anim.action]){
+        html+=`<option value="${animname}" ${anim.type==animname?'selected':''}>${allanimtype[anim.action][animname].name}</option>`;
+    }
     html+=`</selectbox></div>`;
     // html+=`<div class="form-group"><label>时长/s</label>
     // <input type="number" step="0.1" min="0" value="${anim.duration}" onchange="updateAnimation('duration', this.value)">
@@ -492,45 +515,53 @@ function selectAnimation(type, nodeIndex, animIndex) {
     <input type="number" step="0.1" min="0" value="${anim.delay}" onchange="updateAnimation('delay', this.value)">
     </div>`;
     let prop=copy(props['anim'][anim.action][anim.type]);
+    console.log(anim);
     for(let key in anim.prop){
-        if(!(key in prop)) delete anim.prop[key];
+        if(!(key in prop)){
+            delete anim.prop[key];
+            break;
+        }
         
         prop[key].value=anim.prop[key];
     }
     for(let key in prop){
         html+=`<div class="form-group"><label>${prop[key].name}</label>`;
         if(prop[key].type=='select'){
-            html+=`<selectbox onclick="show(this)" class="form-control ${key}" onchange="updateAnimation('${key}', this.value)">`;
+            html+=`<selectbox onclick="show(this)" class="form-control ${key}" onchange="updateAnimation('${key}', this.value, true)">`;
             prop[key].options.forEach(option=>{
                 html+=`<option value="${option.value}" ${prop[key].value==option.value?'selected':''}>${option.name}</option>`;
             });
             html+=`</selectbox>`;
         } else if(prop[key].type=='number'){
-            html+=`<input type="number" class="form-control ${key}" value="${prop[key].value}" onchange="updateAnimation('${key}', this.value)">`;
+            html+=`<input type="number" class="form-control ${key}" value="${prop[key].value}" onchange="updateAnimation('${key}', this.value,true)">`;
         }
         html+=`</div>`;
     }
 
-    html+=`<button class="preview-btn" onclick="previewAnimation(this);"><i class="bi bi-play"></i> 预览动画</button>`;
+    html+=`<button class="preview-btn" onclick="previewAnimation(this);"><i class="bi bi-play"></i> 预览效果</button>`;
     
     $('.animation-editor .editor').html(html);
 }
 
-function updateAnimation(prop, value) {
+function updateAnimation(prop, value, isprop=false) {
     if (!selectedAnimation) return;
-
-    selectedAnimation[prop] = value;
-    if (prop == 'type' || prop == 'action') {
-        for(let key in props.anim[selectedAnimation.action][selectedAnimation.type]){
-            if(!selectedAnimation.prop.includes(key)){
-                selectedAnimation.prop[key]=props.anim[selectedAnimation.action][selectedAnimation.type][key].default;
+    if(isprop){
+        selectedAnimation.prop[prop] = value;
+    }else{
+        selectedAnimation[prop] = value;
+        if (prop == 'type' || prop == 'action') {
+            for(let key in props.anim[selectedAnimation.action][selectedAnimation.type]){
+                if(!(selectedAnimation.prop.includes && selectedAnimation.prop.includes(key))){
+                    selectedAnimation.prop[key]=props.anim[selectedAnimation.action][selectedAnimation.type][key].default;
+                }
             }
         }
     }
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
-        // file = data;
+    updateFile().done(()=>{
         loadAnimation();
+        selectAnimation('well', null, null, selectedAnimation);
+        // file = data;
     });
 }
 
@@ -540,7 +571,7 @@ function addTimeNode() {
         actions: []
     });
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+    updateFile().done(()=>{
         // file = data;
         loadAnimation();
     });
@@ -549,7 +580,7 @@ function addTimeNode() {
 function deleteNode(index) {
     file.animation.onclick.splice(index, 1);
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(data=>{
+    updateFile().done(data=>{
         // file = data;
         loadAnimation();
     });
@@ -572,11 +603,11 @@ function showAddAnimation(type, nodeIndex) {
 function updateAnimationTypes(action,typee,nodeIndex) {
     const types = allanimtype[action];
     let html = '';
-    types.forEach(type => {
-        html += `<div class="animation-type item" onclick="addNewAnimation('${typee}',${nodeIndex},'${action}', '${type}')">
-            ${type}
+    for(let animname in types){
+        html += `<div class="animation-type item" onclick="addNewAnimation('${typee}',${nodeIndex},'${action}', '${animname}')">
+            ${types[animname].name}
         </div>`;
-    });
+    }
     $('#addAnimation .animation-types').html(html);
 }
 
@@ -607,7 +638,7 @@ function addNewAnimation(type,nodeindex,action,anitype) {
     }
 
     $('#addAnimation').hide();
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
+    updateFile().done(() => {
         // file = data;
         loadAnimation();
     });
@@ -620,7 +651,7 @@ function deleteAnimation(type, nodeIndex, animIndex) {
         file.animation.onclick[nodeIndex].actions.splice(animIndex, 1);
     }
 
-    $.post(`/api/${pg}/update`, JSON.stringify(file)).done(()=>{
+    updateFile().done(()=>{
         // file = data;
         loadAnimation();
     });
@@ -628,12 +659,12 @@ function deleteAnimation(type, nodeIndex, animIndex) {
 
 function previewAnimation(t) {
     if (!selectedAnimation) return;
-    if(t.innerText == '预览动画') {
-        $('#page')[0].contentWindow.previewAnimation(selectedAnimation);
+    if(t.innerText == '预览效果') {
+        frame.previewAnimation(selectedAnimation);
         $(t).html('<i class="bi bi-x"></i> 关闭预览');
     }else{
-        $('#page')[0].contentWindow.closePreview();
-        $(t).html('<i class="bi bi-play"></i> 预览动画');
+        frame.closePreview();
+        $(t).html('<i class="bi bi-play"></i> 预览效果');
     }
 }
 
@@ -641,19 +672,43 @@ function getpageoffset(){
     return $('#page').offset();
 }
 
+// 复制选中元素
 function copyElement() {
-    clipboard = copy(file.elements[selectedIndex]);
-    $('#copy').hide();
-}
-function pasteElement() {
-    if (clipboard) {
-        const newElement = copy(clipboard);
-        newElement.id= crypto.randomUUID();
-        file.elements.push(newElement);
-        $.post(`/api/${pg}/update`, JSON.stringify(file)).done(() => {
-            $('#page')[0].contentWindow.loadpage('#ele-' + newElement.id);
+    if (frame.selectedElements?.length > 0) {
+        console.log('copy');
+        clipboard = frame.selectedElements.map(element => {
+            return copy(file.elements.find(e => e.id === element.dataset.id));
         });
     }
+    $('#toolbar>.sl>.paste').removeClass('disabled');
+}
+
+// 粘贴元素
+function pasteElement() {
+    if (!clipboard?.length) return;
+    
+    const newElements = clipboard.map(element => {
+        const newElement = copy(element);
+        newElement.id = crypto.randomUUID();
+        // 偏移位置以区分新旧元素
+        newElement.x += 20;
+        newElement.y += 20;
+        return newElement;
+    });
+
+    file.elements.push(...newElements);
+    updateFile().done(() => {
+        frame.loadpage();
+        // 选中新粘贴的元素
+        setTimeout(() => {
+            const elements = newElements.map(e => 
+                document.querySelector(`#page`).contentWindow.document.querySelector(`#ele-${e.id}`)
+            );
+            frame.selectedElements = elements;
+            frame.selectedElement = elements[0];
+            frame.updateSelectionBox();
+        }, 100);
+    });
     $('#copy').hide();
 }
 
@@ -776,10 +831,10 @@ function addImageElement(url) {
         file = data;
         const element = file.elements[file.elements.length - 1];
         element.prop.src = url;
-        element.prop.objectFit = 'contain';  // 设置默认填充方式
-        $.post(`/api/${pg}/update`, JSON.stringify(file))
+        element.prop.objectFit = 'cover';  // 设置默认填充方式
+        updateFile()
         .done(() => {
-            $('#page')[0].contentWindow.loadpage('#ele-' + element.id);
+            frame.loadpage('#ele-' + element.id);
         });
     });
 }

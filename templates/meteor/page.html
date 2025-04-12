@@ -72,6 +72,19 @@
             gap: 4px;
             z-index: 1000;
             transform-origin: left top;
+            user-select: none;
+        }
+        #controls.mult>button,
+        #controls:not(.mult)>.num {
+            display: none;
+        }
+        #controls>.num {
+            font-size: 14px;
+            color: #fff;
+            font-weight: bold;
+            /* 文本描边 */
+            text-shadow: 0 1px 0 #000, 0 -1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
+            
         }
         #controls button {
             width: 24px;
@@ -145,7 +158,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
         }
         .preview-container {
             position: relative;
@@ -164,12 +176,23 @@
             from { opacity: 1; }
             to { opacity: 0; }
         }
+        #selection-box {
+            position: absolute;
+            border: 1px solid #2983cc;
+            background: #2983cc20;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+        }
     </style>
     <link rel="stylesheet" href="/lib/booticon.css">
 </head>
 <body>
     <script src="/lib/jq.min.js"></script>
-    
+    <script>
+        const animStyle={{ animStyle|safe }};
+        const pg={{ pg }};
+    </script>
     <div id="elements">
 
     </div>
@@ -189,18 +212,22 @@
         <button onclick="changeZIndex('up')"><i class="bi bi-chevron-up"></i></button>
         <button onclick="changeZIndex('down')"><i class="bi bi-chevron-down"></i></button>
         <button onclick="changeZIndex('bottom')"><i class="bi bi-chevron-bar-down"></i></button>
+        <span class="num"><span>0</span> 个元素</span>
     </div>
     <div id="cm">
         
     <contextmenu style="display: none;">
         <!-- <p class="text"></p> -->
         <p onclick="pasteElement()" if="clipboard">粘贴到页面</p>
-        <hr if="clipboard">
-        <p onclick="copyElement()">复制元素</p>
-        <p onclick="copyElement();delEle(selected)">剪切元素</p>
-        <p onclick="delEle(selected)">删除</p>
+        <p onclick="frame.selectAll()">全选</p>
+        <hr>
+        <p onclick="copyElement()" if="frame.selectedElements.length">复制元素</p>
+        <p onclick="copyElement();delEle()" if="frame.selectedElements.length">剪切元素</p>
+        <p onclick="delEle()" if="frame.selectedElements.length">删除</p>
     </contextmenu>
     </div>
+    <div id="selection-box"></div>
+
     <div class="preview-overlay">
         <div class="preview-page">
             <div class="preview-container">
@@ -211,328 +238,8 @@
     <style id="tagcss">
 
     </style>
-    <script>
-        let moving = false;
-        let resizing = false;
-        let startPos = {x: 0, y: 0};
-        let startSize = {width: 0, height: 0};
-        let selectedElement = null;
-        const $selector = $('#selector');
-        let zoom_level=1;
-        const animStyle={
-            in:{
-                fade:{
-                    transition:'var(--anim-prop-duration) var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'0'
-                        },
-                        after:{
-                            'opacity':'1'
-                        }
-                    }
-                },
-                no:{
-                    transition:'0ms var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'0'
-                        },
-                        after:{
-                            'opacity':'1'
-                        }
-                    }
-                }
-            },
-            out:{
-                fade:{
-                    transition:'var(--anim-prop-duration) var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'1'
-                        },
-                        after:{
-                            'opacity':'0'
-                        }
-                    }
-                },
-                no:{
-                    transition:'0ms var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'1'
-                        },
-                        after:{
-                            'opacity':'0'
-                        }
-                    }
-                }
-            }
-        }
-
-
-        function loadpage(selected=null){
-            $.getJSON('/get/{{ pg }}').done(r=>{
-                $('#tagcss').html(r.tagcss);
-                $('#elements').html(r.elements_html);
-                $(':root').css('--background',r.background);
-                if(selected==null){
-                    clearSelection();
-                }else if(selected==false){
-                    // 避免向父页面汇报，导致重新加载
-                    // moving=true;
-                    // selectElement(selectedElement);
-                    // moving=false;
-                }else{
-                    selectElement(selected);
-                }
-            });
-        }
-        loadpage();
-
-        // 选择元素，供内部、父页面调用
-        function selectElement(element) {
-            const $element = $(element);
-            if (!$element.length) return;
-            
-            selectedElement = $element[0];
-            const position = $element.position();
-            
-            $selector.show().css({
-                left: position.left,
-                top: position.top,
-                // width: selectedElement.offsetWidth,
-                // height: $element.outerHeight()
-                width: $element.outerWidth()*zoom_level,
-                height: $element.outerHeight()*zoom_level,
-                transform: 'scale('+(1/zoom_level)+')'
-            });
-
-            $('#controls').show().css({
-                left: position.left+$element.outerWidth()+10*(1/zoom_level),
-                top: position.top,
-                transform: 'scale('+(1/zoom_level)+')'
-
-            });
-            
-            // 通知父页面
-            if (!moving && !resizing) {
-                window.parent.select($element.data('id'));
-            }
-        }
-
-        // 清除选择
-        function clearSelection() {
-            if (moving || resizing) return;
-            selectedElement = null;
-            $selector.hide();
-            $('#controls').hide()
-            window.parent.select(null);
-        }
-
-        // 委托处理所有元素的点击事件，以避免一些奇异的冒泡逻辑
-        $(document).on('mousedown', function(e) {
-            // 控制按钮的点击
-            if ($(e.target).closest('#controls').length) {
-                console.log('click');
-                e.stopPropagation();
-                return;
-            }
-            // // 右键菜单
-            // if(e.button==2){
-            // }
-            // 选择框的点击
-
-            const $target = $(e.target);
-            
-            // 调整大小
-            if ($target.hasClass('resize-handle')) {
-                e.stopPropagation();
-                if (!selectedElement) return;
-                
-                resizing = true;
-                $('#controls').hide();
-                startPos = {x: e.clientX, y: e.clientY};
-                startSize = {
-                    width: $(selectedElement).width(),
-                    height: $(selectedElement).height()
-                };
-                return;
-            }
-
-            // 元素选择、移动
-            const $element = $target.closest('.element');
-            if ($element.length) {
-                e.stopPropagation();
-                if (!selectedElement || selectedElement !== $element[0]) {
-                    selectElement($element[0]);
-                }
-                moving = true;
-                $('#controls').hide();
-                startPos = {
-                    x: e.clientX - $element.position().left,
-                    y: e.clientY - $element.position().top
-                };
-            } else {
-                // 即点击空白区域
-                clearSelection();
-            }
-        });
-
-        // 移动、调整大小过程
-        $(document).on('mousemove', function(e) {
-            if (moving && selectedElement) {
-                const newLeft = e.clientX - startPos.x;
-                const newTop = e.clientY - startPos.y;
-                $(selectedElement).css({ left: newLeft, top: newTop });
-                $selector.css({ left: newLeft, top: newTop });
-            } else if (resizing && selectedElement) {
-                const newWidth = Math.max(20, startSize.width + (e.clientX - startPos.x));
-                const newHeight = Math.max(20, startSize.height + (e.clientY - startPos.y));
-                $(selectedElement).css({ width: newWidth, height: newHeight });
-                $selector.css({ width: newWidth*zoom_level, height: newHeight*zoom_level });
-            }
-        });
-
-        // 移动、调整大小结束
-        $(document).on('mouseup', function() {
-            if (moving && selectedElement) {
-                const pos = $(selectedElement).position();
-                window.parent.updatePosition(
-                    selectedElement.dataset.id,
-                    pos.left,
-                    pos.top
-                );
-                $('#controls').show().css({
-                    left: pos.left+$(selectedElement).outerWidth()+10*(1/zoom_level),
-                    top: pos.top
-                })
-            }
-            if (resizing && selectedElement) {
-                const $el = $(selectedElement);
-                window.parent.updateSize(
-                    selectedElement.dataset.id,
-                    $el.width(),
-                    $el.height()
-                );
-                $('#controls').show().css({
-                    left: $el.position().left+$el.outerWidth()+10*(1/zoom_level),
-                    top: $el.position().top
-                })
-            }
-            moving = false;
-            resizing = false;
-        });
-
-        // 右键菜单
-        $(document).on('contextmenu', '.element', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            selectElement(e.target);
-            const offset=window.parent.getpageoffset();
-            window.parent.showcm(e.clientX*zoom_level+offset.left,e.clientY*zoom_level+offset.top,document.getElementById('cm'));
-            return false;
-        });
-
-        // 快速对齐
-        function alignElement(type) {
-            if (!selectedElement) return;
-            const $element = $(selectedElement);
-            const $body = $('body');
-            const bodyWidth = $body.width();
-            const bodyHeight = $body.height();
-            const elementWidth = $element.outerWidth();
-            const elementHeight = $element.outerHeight();
-            
-            let newLeft = $element.position().left;
-            let newTop = $element.position().top;
-
-            switch(type) {
-                case 'center':
-                    newLeft = (bodyWidth - elementWidth) / 2;
-                    newTop = (bodyHeight - elementHeight) / 2;
-                    break;
-                case 'hcenter':
-                    newLeft = (bodyWidth - elementWidth) / 2;
-                    break;
-                case 'vcenter':
-                    newTop = (bodyHeight - elementHeight) / 2;
-                    break;
-            }
-
-            $element.css({left: newLeft, top: newTop});
-            $selector.css({left: newLeft, top: newTop});
-            window.parent.updatePosition(selectedElement.dataset.id, newLeft, newTop);
-        }
-
-        // 层级调整
-        function changeZIndex(type) {
-            if (!selectedElement) return;
-            window.parent.updateElementsOrder(selectedElement.dataset.id,type);
-        }
-
-        function zoom(z){
-            zoom_level=z;
-            // $('#elements').css('zoom',zoom_level);
-            moving=true;
-            selectElement(selectedElement);
-            moving=false;
-        }
-
-        function previewAnimation(animation) {
-            const element = document.querySelector(`#ele-${animation.target}`);
-            if (!element) return;
-
-            // 克隆元素及其位置和尺寸
-            const previewEl = element.cloneNode(true);
-            const rect = element.getBoundingClientRect();
-            
-            document.querySelector('#preview-element').innerHTML = '';
-            document.querySelector('#preview-element').appendChild(previewEl);
-            document.querySelector('.preview-overlay').style.display = 'flex';
-
-            // 复制原始元素的位置和尺寸
-            previewEl.style.left = element.style.left;
-            previewEl.style.top = element.style.top;
-            previewEl.style.width = element.style.width;
-            previewEl.style.height = element.style.height;
-
-            // 禁用页面交互
-            document.body.style.pointerEvents = 'none';
-            document.querySelector('.preview-overlay').style.pointerEvents = 'auto';
-            
-            // 设置动画属性
-            const style = animStyle[animation.action][animation.type];
-            if (!style) return;
-
-            // 设置CSS变量
-            previewEl.style.setProperty('--anim-delay', `${animation.delay}s`);
-            previewEl.style.setProperty('--anim-prop-duration', `${animation.prop.duration}s`);
-            
-            // 设置过渡
-            previewEl.style.transition = style.transition;
-
-            // 设置初始状态
-            Object.entries(style.change.before).forEach(([prop, value]) => {
-                previewEl.style[prop] = value;
-            });
-
-            // 延迟设置结束状态以触发动画
-            setTimeout(() => {
-                Object.entries(style.change.after).forEach(([prop, value]) => {
-                    previewEl.style[prop] = value;
-                });
-            }, 50);
-        }
-
-        function closePreview() {
-            document.querySelector('.preview-overlay').style.display = 'none';
-            document.querySelector('#preview-element').innerHTML = '';
-            // 恢复页面交互
-            document.body.style.pointerEvents = 'auto';
-        }
-
-        $('#controls').hide();
+    <script src="/lib/edit/page.js">
+        
     </script>
 </body>
 </html>

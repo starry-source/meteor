@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- 使用 Meteor 制作 -->
- 
+
 <html>
 <head>
     <meta charset="UTF-8">
@@ -122,56 +122,7 @@
         const pageData={{ data|safe }};
         const pages=document.querySelectorAll('#container>.page')
         let animIndex=-1; // 添加动画索引
-        const animStyle={
-            in:{
-                fade:{
-                    transition:'var(--anim-prop-duration) var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'0'
-                        },
-                        after:{
-                            'opacity':'1'
-                        }
-                    }
-                },
-                no:{
-                    transition:'0ms var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'0'
-                        },
-                        after:{
-                            'opacity':'1'
-                        }
-                    }
-                }
-            },
-            out:{
-                fade:{
-                    transition:'var(--anim-prop-duration) var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'1'
-                        },
-                        after:{
-                            'opacity':'0'
-                        }
-                    }
-                },
-                no:{
-                    transition:'0ms var(--anim-delay)',
-                    change:{
-                        before:{
-                            'opacity':'1'
-                        },
-                        after:{
-                            'opacity':'0'
-                        }
-                    }
-                }
-            }
-        }
+        const animStyle={{ animStyle|safe }};
 
         function fitScreen() {
             const container = document.getElementById('container');

@@ -39,6 +39,6 @@ urlpatterns = [
     path(r'^api/updatetag$', views.update_tag),
     path(r'^api/addtag$', views.add_tag),
     path(r'^api/upload$', views.upload_image),
-    path(r'^temp/images/(?P<filename>.+)$',
-        lambda req,filename:FileResponse(open('temp/images/'+filename,'rb')))
+    path(r'^temp/(?P<filename>.+)$',
+        lambda req,filename:FileResponse(open('temp/'+filename,'rb')))
 ]

@@ -13,7 +13,7 @@
 }
 
 #main>span{
-    font-weight: 100;
+    font-weight: 300;
 }
 
 #main>.tit{
@@ -23,5 +23,5 @@
     font-size: 20px;
 }
 #main>.aut{
-    font-weight: 300;
+    font-weight: 400;
 }

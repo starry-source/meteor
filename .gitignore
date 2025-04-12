@@ -2,3 +2,4 @@
 /packup/meteor.exe
 /temp
 /packup/temp
+*.sqlite3

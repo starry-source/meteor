@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.http import JsonResponse as jsr, HttpResponse
-# from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_sameorigin as xf_same
 import json, uuid, os, base64, mimetypes
 from pathlib import Path
@@ -10,61 +9,7 @@ import htmlmin
 import tkinter as tk
 from tkinter import filedialog
 
-# 所有样式模板
-styleM = {
-    'text': {
-        'name':'文本样式',
-        'font': {
-            'css': 'font-family: \'{value}\';',
-            'name': '字体',
-            'type': 'select',
-            'options': [
-                {'name': '预设', 'value': 'inherit'},
-                {'name': '宋体', 'value': '宋体'},
-                {'name': '仿宋', 'value': '仿宋'}
-            ]
-        },
-        'fontSize': {
-            'css': 'font-size: {value}px;',
-            'name': '字体大小',
-            'type': 'number',
-        },
-        'color': {
-            'css': 'color: {value};',
-            'name': '颜色',
-            'type': 'color'
-        },
-        'textAlign': {
-            'css': 'text-align: {value};',
-            'name': '对齐方式',
-            'type': 'select',
-            'options': [
-                {'name': '靠左', 'value': 'left'},
-                {'name': '置中', 'value': 'center'},
-                {'name': '靠右', 'value': 'right'}
-            ]
-        }
-    },
-    'shape': {
-        'name':'形状样式',
-        'bgcolor': {
-            'css': 'background-color: {value};',
-            'name': '背景色',
-            'type': 'color'
-        },
-        'bdrd': {
-            'css': 'border-radius: {value}px;',
-            'name': '圆角',
-            'type': 'number',
-        }
-    }
-} 
-
-htmlM={
-    'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}" style="{style}">{e[prop][content]}</span>',
-    'rect': '<div id="ele-{e[id]}" class="element {tags} element-rect" data-id="{e[id]}" style="{style}"></div>',
-    'image': '<img id="ele-{e[id]}" class="element {tags} element-image" data-id="{e[id]}" style="{style}" src="{e[prop][src]}">',
-}
+from .spec import *
 
 # 文件数据
 f = {
@@ -78,27 +23,44 @@ f = {
                 'id': 'uuidcode1',
                 'type': 'rect',
                 'prop':{},
-                'x': 100,
-                'y': 100,
-                'width': 1000,
-                'height': 500,
+                'x': 560,
+                'y': 270,
+                'width': 800,
+                'height': 490,
                 'style': {
-                    'shape.bgcolor':'#f2e0ff',
+                    'shape.bgcolor':'#f7f397',
+                    'shape.bdrd':'40'
                 },
                 'tags': []
+            },
+            {
+                'id': 'uuidcode3',
+                'type': 'text',
+                'prop':{
+                    'content':'欢迎使用'
+                },
+                'x': 710,
+                'y': 330,
+                'width': 500,
+                'height': 170,
+                'style': {
+                    'text.color':'#000000',
+                },
+                'tags': ['title']
             },
             {
                 'id': 'uuidcode2',
                 'type': 'text',
                 'prop':{
-                    'content':'欢迎'
+                    'content':'Meteor'
                 },
-                'x': 200,
-                'y': 200,
-                'width': 400,
+                'x': 460,
+                'y': 420,
+                'width': 1000,
                 'height': 300,
                 'style': {
                     'text.color':'#2983cc',
+                    'text.fontSize':190
                 },
                 'tags': ['title']
             },
@@ -111,23 +73,32 @@ f = {
                     'target':'uuidcode1',
                     'type':'fade',
                     'action':'in',
-                    'delay':0,
+                    'delay':0.5,
                     'prop':{
-                        'duration':1
+                        'duration':0.5
                     }
                 }
             ],
             'onclick':[
                 {
                     # 点击节点 1
-                    'name':'展示背景',
+                    'name':'显示文字',
                     'actions':[
                         # 同时播放
+                        {
+                            'target':'uuidcode3',
+                            'type':'fade',
+                            'action':'in',
+                            'delay':0,
+                            'prop':{
+                                'duration':0.5
+                            }
+                        },
                         {
                             'target':'uuidcode2',
                             'type':'fade',
                             'action':'in',
-                            'delay':0,
+                            'delay':0.2,
                             'prop':{
                                 'duration':1
                             }
@@ -136,7 +107,7 @@ f = {
                 },
                 {
                     # 节点 2
-                    'name':'淡出内容',
+                    'name':'淡出背景',
                     'actions':[
                         {
                             'target':'uuidcode1',
@@ -144,16 +115,7 @@ f = {
                             'action':'out',
                             'delay':0,
                             'prop':{
-                                'duration':1
-                            }
-                        },
-                        {
-                            'target':'uuidcode2',
-                            'type':'fade',
-                            'action':'out',
-                            'delay':2,
-                            'prop':{
-                                'duration':2
+                                'duration':0.5
                             }
                         }
                     ]
@@ -167,7 +129,7 @@ f = {
                 'name':'标题样式'
             },
             'style': {
-                'text.fontSize': 150,
+                'text.fontSize': 100,
                 'text.color': '#000000',
                 'text.textAlign': 'center',
             }
@@ -185,135 +147,7 @@ f = {
 
 filepath=None
 
-allanimtype={
-    'in':['fade','no'],
-    'out':['fade','no'],
-}
-
-# 属性模板，其中 tag 键方便 js 中元素和标签 loadprop 的共用
-props={
-    'tag':{
-        'name':{
-            'name':'标签名称',
-            'type':'text',
-        }
-    },
-    'anim':{
-        'in':{
-            'fade':{
-                'duration': {
-                    'name': '持续时间/s',
-                    'type': 'number',
-                    'default': 0.2
-                }
-            },
-            'no':{
-            }
-        },
-        'out':{
-            'fade':{
-                'duration': {
-                    'name': '持续时间/s',
-                    'type': 'number',
-                    'default': 0.2
-                }
-            },
-            'no':{
-            }
-        },
-        # 'flyin':{
-        #     'direction':{
-        #         'name':'方向',
-        #         'type':'select',
-        #         'options':[
-        #             {'name':'上','value':'top'},
-        #             {'name':'下','value':'bottom'},
-        #             {'name':'左','value':'left'},
-        #             {'name':'右','value':'right'}
-        #         ]
-        #     }
-        # },
-        # 'flyout':{
-        #     'direction':{
-        #         'name':'方向',
-        #         'type':'select',
-        #         'options':[
-        #             {'name':'上','value':'top'},
-        #             {'name':'下','value':'bottom'},
-        #             {'name':'左','value':'left'},
-        #             {'name':'右','value':'right'}
-        #         ]
-        #     }
-        # }
-    },
-    'text':{
-        'content':{
-            'name':'文本',
-            'type':'text'
-        }
-    },
-    'rect':{},
-    'image':{
-        'src':{
-            'name':'图片路径',
-            'type':'text'
-        },
-        'objectFit': {
-            'name': '填充方式',
-            'type': 'select',
-            'options': [
-                {'name': '拉伸', 'value': 'fill'},
-                {'name': '适应', 'value': 'contain'},
-                {'name': '覆盖', 'value': 'cover'},
-            ]
-        }
-    }
-}
-
 def getnewele(type):
-    allele={
-        'text':{
-            'type':'text',
-            'prop':{
-                'content':'新文本'
-            },
-            'x':100,
-            'y':100,
-            'width':200,
-            'height':50,
-            'style':{
-                'text.fontSize':30,
-                'text.color':'#000000',
-            },
-            'tags':[]
-        },
-        'rect':{
-            'type':'rect',
-            'prop':{},
-            'x':100,
-            'y':100,
-            'width':100,
-            'height':50,
-            'style':{
-                'shape.bgcolor':'#000000',
-                'shape.bdrd':0,
-            },
-            'tags':[]
-        },
-        'image':{
-            'type':'image',
-            'prop':{
-                'src':'',
-                'objectFit':'contain'
-            },
-            'x':100,
-            'y':100,
-            'width':200,
-            'height':150,
-            'style':{},
-            'tags':[]
-        }
-    }
     ret=allele[type]
     ret['id']=str(uuid.uuid4())
     return ret
@@ -349,16 +183,9 @@ def edit(req,pg):
 
 @xf_same
 def render_page(req,pg):
-    # 渲染嵌套的页面
-    # html = render_html(pg)
-    # tagscss = render_tag_css()
-    # return render(req, 'meteor/page.html', {
-    #     'background': f['pages'][0]['background'],
-    #     'elements_html': html,
-    #     'tagscss':tagscss
-    # })
     return render(req,'meteor/page.html',{
-        'pg':pg
+        'pg':pg,
+        'animStyle':animStyle,
     })
 
 def render_tag_css():
@@ -414,7 +241,9 @@ def add_element(req,pg):
 def delete_element(req,pg):
     if req.method == 'POST':
         data = json.loads(req.body.decode())
-        f['pages'][int(pg)]['elements']=[ele for ele in f['pages'][int(pg)]['elements'] if ele['id']!=data['id']]
+        for el in data['elements']:
+            # 删除元素
+            f['pages'][int(pg)]['elements']=[ele for ele in f['pages'][int(pg)]['elements'] if ele['id']!=el['id']]
         return jsr(f['pages'][int(pg)])
     return jsr({'status': 'error'})
 
@@ -471,7 +300,8 @@ def play(req):
         'width': f['width'],
         'height': f['height'],
         'tagcss': render_tag_css(),
-        'data':f['pages']
+        'data':f['pages'],
+        'animStyle':animStyle,
     })
 
 def export_file(req):
@@ -500,9 +330,10 @@ def export_file(req):
         'width': f['width'],
         'height': f['height'],
         'tagcss': render_tag_css(),
-        'data': f['pages']
-    })
-    return htmlmin.minify(response, remove_comments=False, remove_empty_space=True)
+        'data': f['pages'],
+        'animStyle':animStyle,
+    }).content.decode()
+    return HttpResponse(htmlmin.minify(response, remove_comments=False, remove_empty_space=True))
 
 def add_tag(req):
     if req.method == 'POST':

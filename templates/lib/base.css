@@ -54,6 +54,7 @@ button, input, optgroup, select, textarea {
 a:-webkit-any-link {
     cursor: pointer;
     text-decoration: none;
+    color: unset;
 }
 
 
