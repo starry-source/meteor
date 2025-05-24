@@ -1,5 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+from PyInstaller.utils.win32.versioninfo import (
+    FixedFileInfo, StringFileInfo, StringStruct,
+    StringTable, VarFileInfo, VarStruct, VSVersionInfo
+)
 
 a = Analysis(
     ['meteor.py'],
@@ -29,6 +32,7 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,
+    #icon='app.ico',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

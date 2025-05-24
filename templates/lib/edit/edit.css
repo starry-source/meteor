@@ -408,6 +408,7 @@ info{
 }
 
 #toolbar>.b {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
     height: 30px;
     overflow: hidden;
     border-radius: 7px;

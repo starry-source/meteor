@@ -241,9 +241,18 @@ def add_element(req,pg):
 def delete_element(req,pg):
     if req.method == 'POST':
         data = json.loads(req.body.decode())
+        # data={elements:[{id:...},{id:...}]}
         for el in data['elements']:
-            # 删除元素
             f['pages'][int(pg)]['elements']=[ele for ele in f['pages'][int(pg)]['elements'] if ele['id']!=el['id']]
+            for i,action in enumerate(f['pages'][int(pg)]['animation']['onclick']):
+                for j,action in enumerate(action['actions']):
+                    if action['target'] == el['id']:
+                        f['pages'][int(pg)]['animation']['onclick'][i]['actions'].pop(j)
+                        break
+            for i,action in enumerate(f['pages'][int(pg)]['animation']['onload']):
+                if action['target'] == el['id']:
+                    f['pages'][int(pg)]['animation']['onload'].pop(i)
+                    break
         return jsr(f['pages'][int(pg)])
     return jsr({'status': 'error'})
 

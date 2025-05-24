@@ -1,3 +1,40 @@
+
+console.log(
+`%cMeteor%c
+%c由星源开发 · Developed by Starry Source%c
+%cGitHub %cstarry-source/meteor
+%chttps://github.com/starry-source/meteor`,
+`
+background-image: linear-gradient(to right,rgb(234, 223, 13),rgb(94, 177, 245));
+-webkit-background-clip: text;
+font-size: 2.5em;
+color: transparent;
+font-weight:bold;
+padding: 10px 0 10px 20px;
+margin-top: 20px;
+display:block;
+font-family: "Cascadia Mono", Consolas, "Courier New", Courier, monospace;
+border-left: 2px solid #2983cc;`,'',
+`
+font-size: 1.4em;
+line-height:1.5;
+font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+padding-bottom:10px;
+padding-left:15px;border-left: 2px solid #2983cc;
+`,'',
+`font-size:1.2em;
+border-left: 2px solid #2983cc;
+padding-left:15px;`,
+`font-size:1.2em;
+font-whight:bold;
+font-family: "Cascadia Mono", Consolas, "Courier New", Courier, monospace;`,
+`color:#2983cc;
+padding-left:15px;
+border-left: 2px solid #2983cc;
+padding-bottom: 15px;
+margin-bottom: 20px;`);
+
+
 let selected = null;
 let selectedIndex = null;
 let selectedAnimation = null;
@@ -332,9 +369,9 @@ function addEle(type) {
 // 删除选中的元素
 function delEle() {
     if (frame.selectedElements?.length > 0) {
-        const elementIds = frame.selectedElements.map(el => el.dataset.id);
+        const elementIds = frame.selectedElements.map(el => ({id:el.dataset.id}));
         $.post(`/api/${pg}/delete`, JSON.stringify({
-            elements: elementIds.map(id => ({ id }))
+            elements: elementIds
         }))
         .done(data => {
             file = data;
@@ -567,12 +604,11 @@ function updateAnimation(prop, value, isprop=false) {
 
 function addTimeNode() {
     file.animation.onclick.push({
-        name: '新节点',
+        name: '新动画节点',
         actions: []
     });
 
     updateFile().done(()=>{
-        // file = data;
         loadAnimation();
     });
 }
