@@ -78,7 +78,7 @@ a:-webkit-any-link {
 }
 
 .a {
-    color: #000;
+    /* color: #000; */
     text-decoration: none !important;
     cursor: pointer;
 }

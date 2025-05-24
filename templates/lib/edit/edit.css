@@ -1,6 +1,78 @@
 @import url(/lib/base.css);
 @import url(edit-layout.css);
 
+/* 全局颜色变量定义 */
+:root {
+    /* 主题色 */
+    --theme-primary: #2983cc;
+    --theme-primary-hover: #57a5e5;
+    --theme-primary-active: #2471b5;
+    --theme-primary-op: #2983cc20;
+    
+    /* 背景色 */
+    --bg-base: #ffffff;
+    --bg-panel: #ffffffe0;
+    --bg-hover: #99999925;
+    --bg-active: #9999993a;
+    
+    /* 文字颜色 */
+    --text-primary: #000000;
+    --text-secondary: #666666;
+    --text-disabled: #999999;
+    
+    /* 边框和分割线 */
+    --border-color: #7f7f7f40;
+    --divider-color: #e0e0e0;
+    
+    /* 控件颜色 */
+    --control-bg: #ffffff;
+    --control-border: #dfdfdf;
+    --control-shadow: #00000040;
+    
+    /* 模态框背景 */
+    --modal-bg: #f9f9f9;
+    --modal-overlay: #00000038;
+    --modal-bd: #dfdfdf;
+    --modal-inset:#ffffff20;
+    --cm-bg: #f9f9f9c7;
+}
+
+/* 深色模式变量重写 */
+:root.dark {
+    --theme-primary: #3693df;
+    --theme-primary-hover: #4ba3ef;
+    --theme-primary-active: #2471b5;
+    --theme-primary-op: #4ba3ef30;
+    
+    --bg-base: #1a1a1a;
+    --bg-panel: #222222e0;
+    /* --bg-hover: #99999925; */
+    /* --bg-active: #99999935; */
+    
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-disabled: #888888;
+    
+    --border-color: #ffffff40;
+    --divider-color: #404040;
+    
+    --control-bg: #222;
+    --control-border: #555555;
+    --control-shadow: #00000080;
+    
+    --modal-bg: #292929;
+    --modal-overlay: #000000a0;
+    --modal-bd: #222;
+    --modal-inset:#ffffff0a;
+    --cm-bg: #333333d0;
+}
+
+/* 应用基础样式 */
+html, body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+}
+
 /* 选中元素后才启用的元素，配合 js */
 .select-then-enable:not(.able) {
     opacity: 0.5;
@@ -11,7 +83,8 @@
 /* 按钮 */
 button {
     appearance: none;
-    background-color: #7f7f7f20;
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
     padding: 3px 10px;
     border-radius: 7px;
     outline: none;
@@ -25,16 +98,16 @@ button {
 }
 
 button.ok {
-    background-color: #2983cc;
-    color: #fff;
+    background-color: var(--theme-primary);
+    color: #ffffff;
 }
 
 button:hover {
-    background-color: #7f7f7f30;
+    background-color: var(--bg-active);
 }
 
 button.ok:hover {
-    background-color: #57a5e5;
+    background-color: var(--theme-primary-hover);
 }
 
 
@@ -44,12 +117,14 @@ button:active {
 
 /* 多样的输入 */
 input:not([type=range]) {
+    border-color: var(--border-color);
+    background: var(--control-bg);
+    color: var(--text-primary);
     outline: none;
     border: 2px solid #7f7f7f40;
     transition: 50ms;
     border-radius: 7px;
     padding: 2px 7px;
-    background: transparent;
     width: 100%;
 }
 
@@ -74,7 +149,7 @@ input[type=color]::-webkit-color-swatch {
 }
 
 input:not([type=range]):hover {
-    background-color: #7f7f7f10;
+    background-color: var(--bg-hover);
 }
 
 input:not([type=range]):active {
@@ -82,8 +157,8 @@ input:not([type=range]):active {
 }
 
 input:not([type=range]):focus {
-    background-color: #fff;
-    border-color: #2983cc;
+    background-color: var(--control-bg);
+    border-color: var(--theme-primary);
     box-shadow: #00000030 0 1px 3px;
     opacity: 1 !important;
 }
@@ -138,7 +213,9 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 /* 平替 select */
 selectbox {
-    background-color: #fff;
+    background-color: var(--control-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
     padding: 2px 7px;
     display: inline-flex;
     min-height: 30px;
@@ -161,7 +238,7 @@ selectbox>option[selected] {
 }
 
 selectbox:hover {
-    background-color: #7f7f7f10;
+    background-color: var(--bg-hover);
 }
 
 selectbox:active {
@@ -172,12 +249,12 @@ selectbox.open {
     /* background-color: #2983cc30; */
     border-color: #2983cc;
     box-shadow: #00000030 0 1px 3px;
-    background-color: #fff !important;
+    background-color: var(--bg-base) !important;
 }
 
 #selectmenu {
     border-radius: 5px;
-    background-color: #f9f9f9c0;
+    background-color: var(--cm-bg);
     backdrop-filter: blur(20px);
     box-shadow: #0000001f 0 4px 9px;
     flex-direction: column !important;
@@ -203,7 +280,7 @@ selectbox.open {
 }
 
 #selectmenu>.option:hover {
-    background-color: #7f7f7f1a;
+    background-color: #9999991d;
 }
 
 #selectmenu>.option:active {
@@ -217,7 +294,7 @@ selectbox.open {
 
 #contextmenu {
     border-radius: 7px;
-    background-color: #f9f9f9c0;
+    background-color: var(--cm-bg);
     backdrop-filter: blur(20px);
     box-shadow: #0000001f 0 4px 9px;
     flex-direction: column !important;
@@ -301,7 +378,7 @@ info{
 }
 
 .list>.item:hover {
-    background-color: #7f7f7f10;
+    background-color: var(--bg-hover);
 }
 
 .list>.item:active {
@@ -309,7 +386,7 @@ info{
 }
 
 .list>.item.active {
-    background-color: #2983cc;
+    background-color: var(--theme-primary);
     color: #fff;
 }
 
@@ -340,7 +417,6 @@ info{
     position: fixed;
     top: 0;
     left: 0;
-    /* background-color: #00000020; */
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -352,11 +428,11 @@ info{
     width: 30%;
     min-width: min-content;
     /* background-color: #fffcfa; */
-    background-color: #f9f9f9;
+    background-color: var(--modal-bg);
     display: none;
     /* box-shadow: #00000020 0 5px 13px; */
-    box-shadow: inset 0 3px 3px #ffffff80, 0 10px 30px -3px #00000038;
-    border: 2px solid #dfdfdf;
+    box-shadow: inset 0 3px 3px var(--modal-inset), 0 10px 30px -3px var(--modal-overlay);
+    border: 2px solid var(--modal-bd);
     padding: 20px;
     border-radius: 16px;
     animation: modalin 300ms cubic-bezier(0.1, 0.5, 0.2, 1);
@@ -408,7 +484,7 @@ info{
 }
 
 #toolbar>.b {
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     height: 30px;
     overflow: hidden;
     border-radius: 7px;
@@ -430,7 +506,7 @@ info{
 }
 
 #toolbar>.b>.bt:hover {
-    background-color: #7f7f7f20;
+    background-color: #99999929;
 }
 
 #toolbar>.b>.bt:active {
@@ -492,7 +568,7 @@ info{
 }
 
 #tools>.group>.fun>.ts:hover {
-    background-color: #7f7f7f10;
+    background-color: #99999919;
 }
 
 #tools>.group>.fun>.ts:active {
@@ -531,9 +607,9 @@ info{
 }
 
 #tags>.tag-list>.tag.active {
-    background-color: #2983cc;
-    border-color: #2983cc;
-    color: #fff;
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary);
+    color: #ffffff;
 }
 
 #tags>.tag-list>.tag.active>button {
@@ -542,7 +618,7 @@ info{
 }
 
 #tags>.tag-list>.tag {
-    border: 2px solid #7f7f7f30;
+    border: 2px solid #99999939;
     display: flex;
     align-items: center;
     padding: 2px 5px;
@@ -654,7 +730,7 @@ info{
 .animation-panel .timeline {
     width: 240px;
     min-height: 240px;
-    border-right: 1px solid #e0e0e0;
+    border-right: 1px solid #99999960;
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
@@ -677,7 +753,7 @@ info{
 
 .animation-panel .node {
     /* background: #f5f5f5; */
-    border: 1px solid #ddd;
+    border: 1px solid #99999960;
     border-radius: 8px;
     padding: 8px 10px;
     margin: 5px 0;
@@ -709,7 +785,7 @@ info{
 } */
 
 .animation-panel .animation-item.selected {
-    background: #2983cc20;
+    background: var(--theme-primary-op);
 }
 .animation-panel .animation-editor {
     flex-grow: 1;

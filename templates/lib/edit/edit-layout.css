@@ -1,5 +1,9 @@
 /* edit 页面布局 */
+
+
 html,body{
+    background-color: var(--bg-base);
+    color: var(--text-primary);
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -16,10 +20,10 @@ html,body{
     radial-gradient(circle at 70% 60%,#ffbf2830,#00000000 25%),
     radial-gradient(circle at 20% 70%,#3da86630,#00000000 25%),
     radial-gradient(circle at 0 0,#acc6d8 0 30%,#d0b7cd 70%); */
-    background-image:radial-gradient(circle at 30% 30%,#6effdd30,#00000000 20%),
+    background-image: var(--bg-pattern, radial-gradient(circle at 30% 30%,#6effdd30,transparent 20%),
     radial-gradient(circle at 70% 40%,#fff86e60 10%,#00000000 30%),
     radial-gradient(circle at 40% 70%,#ff86f340 10%,#00000000 40%),
-    radial-gradient(circle at 0 0,#ebeba5 0 30%,#d1e6ef 80%);
+    radial-gradient(circle at 0 0,#ebeba5 0 30%,#d1e6ef 80%));
     /* background: url(/temp/21.png) center;
     background-size: cover; */
     overflow: hidden;
@@ -95,7 +99,7 @@ html,body{
 }
 
 #tools, #animation, #prop, #tags, #sty, #pages, #bar, #toolbar>.b{
-    background-color: #ffffffe0;
+    background-color: var(--bg-panel);
     /* backdrop-filter: blur(20px) saturate(0.4) brightness(2); */
     /* background-color: #ffffff90; */
 }
@@ -222,4 +226,11 @@ html,body{
 .page-container>.page {
     width: 100%;
     height: 100%;
+}
+
+:root.dark #mainpage {
+    --bg-pattern: radial-gradient(circle at 30% 30%,#6effdd20,transparent 20%),
+    radial-gradient(circle at 70% 40%,#fff86e30 10%,#00000000 30%),
+    radial-gradient(circle at 40% 70%,#ff86f32a 10%,#00000000 40%),
+    radial-gradient(circle at 0 0,#3b3b29 0 30%,#28353b 80%);
 }
