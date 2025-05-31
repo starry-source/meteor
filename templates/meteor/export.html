@@ -25,6 +25,10 @@
         }
         .page.active {
             display: block;
+            --transition: unset;
+        }
+        .page.active .element{
+            transition: var(--transition);
         }
         .element {
             position: absolute !important;
@@ -36,6 +40,7 @@
         #container {
             position: absolute;
             transform-origin: left top;
+            overflow: hidden;
         }
         #contextmenu {
     border-radius: 7px;
@@ -102,9 +107,10 @@
     </style>
 </head>
 <body>
+    <style id="animcss"></style>
     <div id="container">
         {% for page in pages %}
-        <div class="page" style="background:{{ page.background }}">
+        <div class="page {{ forloop.counter0 }} kf--1" style="background:{{ page.background }}">
             {{ page.html|safe }}
         </div>
         {% endfor %}
@@ -123,6 +129,7 @@
         const pages=document.querySelectorAll('#container>.page')
         let animIndex=-1; // 添加动画索引
         const animStyle={{ animStyle|safe }};
+        const pageCss={{ css|safe }};
 
         function fitScreen() {
             const container = document.getElementById('container');
@@ -145,59 +152,23 @@
                     page.classList.add('active');
                 }
             });
+            document.getElementById('animcss').innerHTML=pageCss[index];
         }
 
 
-        function playAnim(index){
-            const anim=pageData[currentPage].animation.onclick[index];
-            anim.actions.forEach(action=>{
-                const target=document.querySelectorAll('.page')[currentPage].querySelector('#ele-'+action.target);
-                const animDef=animStyle[action.action][action.type];
-                
-                target.style.transition='none';
-                // target.style.display='block';
-                
-                // 设置动画属性
-                target.style.setProperty('--anim-delay', action.delay+'s');
-                target.style.setProperty('--anim-prop-duration', action.prop.duration+'s');
-                
-                // 设置初始状态
-                Object.assign(target.style, animDef.change.before);
-                
-                // 强制重排
-                target.offsetHeight;
-                
-                // 设置动画过渡
-                target.style.transition=animDef.transition;
-                
-                // 设置结束状态
-                Object.assign(target.style, animDef.change.after);
-            });
+        function playAnim(index, from){
+            if(index>from){
+                document.querySelector('#container>.page.active').style.setProperty('--transition',`unset`);
+            }else{
+                document.querySelector('#container>.page.active').style.setProperty('--transition','none');
+            }
+            document.querySelector('#container>.page.active').classList.replace('kf-'+from,'kf-'+index);
         }
 
         function next(){
-            if(currentPage===-1){
-                currentPage=0;
-                showPage(0);
-                // 播放onload动画
-                pageData[0].animation.onload.forEach(action=>{
-                    const target=document.querySelectorAll('.page')[0].querySelector('#ele-'+action.target);
-                    const animDef=animStyle[action.action][action.type];
-                    
-                    // target.style.display='block';
-                    target.style.setProperty('--anim-delay', action.delay+'s');
-                    target.style.setProperty('--anim-prop-duration', action.prop.duration+'s');
-                    Object.assign(target.style, animDef.change.before);
-                    target.offsetHeight;
-                    target.style.transition=animDef.transition;
-                    Object.assign(target.style, animDef.change.after);
-                });
-                return false;
-            }
-            
-            if(animIndex < pageData[currentPage].animation.onclick.length-1){
+            if(animIndex < pageData[currentPage].animation.length-1){
                 animIndex++;
-                playAnim(animIndex);
+                playAnim(animIndex,animIndex-1);
                 return false;
             }
             
@@ -214,28 +185,12 @@
         function prev(){
             if(animIndex > -1){
                 // 回退动画状态
-                const anim=pageData[currentPage].animation.onclick[animIndex];
-                anim.actions.forEach(action=>{
-                    const target=document.querySelectorAll('.page')[currentPage].querySelector('#ele-'+action.target);
-                    const animDef=animStyle[action.action][action.type];
-                    
-                    target.style.transition='none';
-                    Object.assign(target.style, animDef.change.before);
-                });
                 animIndex--;
-                
-                if(animIndex >= 0){
-                    // 恢复上一个动画的结束状态
-                    const prevAnim=pageData[currentPage].animation.onclick[animIndex];
-                    prevAnim.actions.forEach(action=>{
-                        const target=document.querySelectorAll('.page')[currentPage].querySelector('#ele-'+action.target);
-                        const animDef=animStyle[action.action][action.type];
-                        Object.assign(target.style, animDef.change.after);
-                    });
-                }
-            } else if(currentPage > 0){
+                playAnim(animIndex, animIndex + 1);
+            }
+            if(currentPage > 0){
                 currentPage--;
-                animIndex=pageData[currentPage].animation.onclick.length-1;
+                animIndex=pageData[currentPage].animation.length-1;
                 showPage(currentPage);
             }
         }
@@ -253,10 +208,6 @@
             try {
                 window.open('', '_self').close(); // 自关闭
             } catch(e) {}
-
-            try {
-                window.location.href = 'about:blank'; // 重定向到空白页
-            } catch(e) {}
         }
         document.addEventListener('click', () => {
             if(document.getElementById('contextmenu').classList.contains('show')) {
@@ -267,23 +218,31 @@
         });
 
         document.addEventListener('keydown', (e) => {
-            if(e.key === 'ArrowLeft') prev();
-            else if(e.key === 'ArrowRight' || e.key === ' ') {
-                if(next()) closewindow()
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                case 'PageUp':
+                case 'Backspace':
+                    prev();
+                    break;
+                case 'ArrowRight':
+                case 'ArrowDown':
+                case 'PageDown':
+                case ' ':
+                case 'Enter':
+                    if (next()) closewindow();
+                    break;
+                default:
+                    break;
             }
         });
         function init(){
-            currentPage=pages.length-1;
-            animIndex=-1;
-            while(currentPage>0 || animIndex>-1){
-                prev();
-            }
             currentPage=-1;
             animIndex=-1;
-            next();
 
         }
         init();
+        showPage(0);
         window.addEventListener('resize', fitScreen);
         // next();
         fitScreen();

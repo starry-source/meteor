@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -7,10 +7,14 @@
     <title>Meteor - 编辑</title>
     <link rel="stylesheet" href="/lib/edit/edit.css">
     <link rel="stylesheet" href="/lib/booticon.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
 </head>
 
 <body>
-    <script src="/lib/jq.min.js"></script><script>
+    <script src="/lib/jq.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
         file={{ file|safe }};
         pg={{ pgid|safe }};
         stylem={{ stylem|safe }};
@@ -157,52 +161,58 @@
             </div>
         </div>
         <div class="css">
-            <div class="p1">
-                <div id="prop">
-                    <div class="title">元素属性</div>
-                    <div class="props">
-                    </div>
-                </div>
-                <div id="tags">
-                    <div class="title">样式标签</div>
-                    <!-- <p style="font-size: small;margin: 0;">点击以添加标签至选中元素。点击标签右部按钮以编辑标签样式。标签样式将用于所有设此标签之元素，但元素样式恒优先于标签样式。</p> -->
-                    <div class="tag-list select-one-then-enable"></div>
-                    <div class="tag-actions">
-                        <button onclick="$('#addtag').show();">添加</button>
-                        <button class="disabled" onclick="manageTag()">管理</button>
-                    </div>
-                </div>
-            </div>
-            <div id="sti">
+            <!-- <div id="sti">
                 <a class="a sty show" onclick="$('#stic>.show,#sti>.show').removeClass('show');$('#stic>#sty,#sti>.sty').addClass('show');">样式</a>
                 <a class="a animation" onclick="$('#stic>.show,#sti>.show').removeClass('show');$('#stic>#animation,#sti>.animation').addClass('show');">动画</a>
-                <!-- <a class="a sty show" onclick="$('#stic>.show,#sti>.show').removeClass('show');$('#stic>#sty,#sti>.sty').addClass('show');">关键帧动画</a> -->
-            </div>
-            <div class="page-container" id="stic">
-                <div id="sty" class="page show">
-                    <!-- 样式表 -->
-                </div>
-                <div id="animation" class="page">
-                    <div class="animation-panel">
-                        <div class="timeline">
-                            <div class="onload">
-                                <span style="font-size:20px">页面进入</span>
-                                <div class="animation-list list"></div>
-                            </div>
-                            <div class="onclick">
-                                <span style="font-size:20px">单击触发
-                                <button onclick="addTimeNode()"><i class="bi bi-plus"></i>添加节点</button></span>
-                                <div class="nodes"></div>
-                            </div>
+                <a class="a sty show" onclick="$('#stic>.show,#sti>.show').removeClass('show');$('#stic>#sty,#sti>.sty').addClass('show');">关键帧动画</a>
+            </div> -->
+            <div class="p1" id="stic">
+                <div id="animation">
+                    <div class="timeline">
+                        <div class="top">
+                            <span style="font-size:20px">时间线</span>
+                            <!-- <button><i class="bi bi-play"></i>播放</button></span> -->
                         </div>
+                        <div class="kfs list"></div>
+                        <button onclick="addKF()"><i class="bi bi-plus"></i>添加关键帧</button></span>
+                    </div>
+                </div>
+                <div class="stys">
+                    <div id="sty">
+                        <!-- 样式表 -->
+                    </div>
+                    <div id="tags">
+                        <div class="title">样式标签</div>
+                        <!-- <p style="font-size: small;margin: 0;">点击以添加标签至选中元素。点击标签右部按钮以编辑标签样式。标签样式将用于所有设此标签之元素，但元素样式恒优先于标签样式。</p> -->
+                        <div class="tag-list select-one-then-enable"></div>
+                        <div class="tag-actions">
+                            <button onclick="$('#addtag').show();">添加</button>
+                            <button class="disabled" onclick="manageTag()">管理</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="target">
+                <span>选中元素</span>
+            </div> -->
+            <div class="p2">
+                <div id="kfprop">
+                    <div class="title">此帧</div>
+                    <div class="props">
+                        
                         <div class="animation-editor">
                             <div class="no-selection">
-                                择取动画以编辑
+                                择取以编辑
                             </div>
                             <div class="editor">
                                 
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div id="prop">
+                    <div class="title">属性</div>
+                    <div class="props">
                     </div>
                 </div>
             </div>

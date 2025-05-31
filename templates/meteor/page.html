@@ -31,6 +31,7 @@
             position: absolute !important;
             cursor: default;
             user-select: none;
+            transition: none !important;
         }
         #selector {            
             position: absolute;
@@ -184,6 +185,7 @@
             display: none;
             z-index: 1000;
         }
+
     </style>
     <link rel="stylesheet" href="/lib/booticon.css">
 </head>
@@ -193,7 +195,7 @@
         const animStyle={{ animStyle|safe }};
         const pg={{ pg }};
     </script>
-    <div id="elements">
+    <div id="elements" class="page active {{ pg }} kf--1">
 
     </div>
     <div id="selector">

@@ -11,7 +11,7 @@ let zoom_level=1;
 
 function loadpage(selected=null){
     $.getJSON('/get/'+pg).done(r=>{
-        $('#tagcss').html(r.tagcss);
+        $('#tagcss').html(r.css+'\n'+r.tagcss);
         $('#elements').html(r.elements_html);
         $(':root').css('--background',r.background);
         if(selected==null){
@@ -21,12 +21,18 @@ function loadpage(selected=null){
             // moving=true;
             // selectElement(selectedElement);
             // moving=false;
+            null;
         }else{
             selectElement(selected);
         }
     });
 }
 loadpage();
+
+function setKeyFrame(index){
+    document.querySelector('#elements').className=`page active ${pg} kf-${index}`;
+    selectElement(selectedElement);
+}
 
 // 选择元素，供内部、父页面调用
 function selectElement(element) {
@@ -74,124 +80,78 @@ function clearSelection() {
     window.parent.select(null);
 }
 
-// $(document).on('mousedown', function(e) {
-//     // 控制按钮的点击
-//     if ($(e.target).closest('#controls').length) {
-//         e.stopPropagation();
-//         return;
-//     }
-//     // // 右键菜单
-//     // if(e.button==2){
-//     // }
-//     // 选择框的点击
 
-//     const $target = $(e.target);
-    
-//     // 调整大小
-//     if ($target.hasClass('resize-handle')) {
-//         e.stopPropagation();
-//         if (!selectedElement) return;
-        
-//         resizing = true;
-//         $('#controls').hide();
-//         startPos = {x: e.clientX, y: e.clientY};
-//         startSize = {
-//             width: $(selectedElement).width(),
-//             height: $(selectedElement).height()
-//         };
-//         return;
-//     }
-
-//     // 元素选择、移动
-//     const $element = $target.closest('.element');
-//     if ($element.length) {
-//         e.stopPropagation();
-//         if (!selectedElement || selectedElement !== $element[0]) {
-//             selectElement($element[0]);
-//         }
-//         moving = true;
-//         $('#controls').hide();
-//         startPos = {
-//             x: e.clientX - $element.position().left,
-//             y: e.clientY - $element.position().top
-//         };
-//     } else {
-//         // 即点击空白区域
-//         clearSelection();
-//     }
-// });
-
-$(document).on('keydown', (e)=>{
-    if(e.key === 'Escape') {
+$(document).on('keydown', (e) => {
+    if (e.key === 'Escape') {
         clearSelection();
-    }else if(e.key === 'Delete' || e.key === 'Backspace') {
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
         window.parent.delEle();
     }
     // else if(e.key === 'z' && (e.ctrlKey || e.metaKey)) {
     //     // Ctrl+Z，撤销
     //     window.parent.undo();
-    // }else if(e.key === 'y' && (e.ctrlKey || e.metaKey)) {
+    // } else if(e.key === 'y' && (e.ctrlKey || e.metaKey)) {
     //     // Ctrl+Y，重做
     //     window.parent.redo();
     // }
-    else if(e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+    else if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
         // Ctrl+C，复制
         window.parent.copyElement();
-    }else if(e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+    } else if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
         // Ctrl+V，粘贴
         window.parent.pasteElement();
-    }else if(e.key === 'x' && (e.ctrlKey || e.metaKey)) {
-        // Ctrl+A，全选
+    } else if (e.key === 'x' && (e.ctrlKey || e.metaKey)) {
+        // Ctrl+X，剪切：复制后删除
         window.parent.copyElement();
         window.parent.delEle();
-    }else if(e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+    } else if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
         // Ctrl+A，全选
         selectAll();
-    }else if(e.key === 'Tab'){
+    } else if (e.key === 'Tab') {
         e.preventDefault();
         e.stopPropagation();
         if (selectedElement) {
-
             const $nextElement = $(selectedElement).next('.element');
             if ($nextElement.length) {
                 selectElement($nextElement[0]);
-            }else{
+            } else {
                 selectElement($('.element').first()[0]);
             }
         }
+    } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        selectedElements.forEach(element => {
+            const $element = $('#ele-'+element.dataset.id);
+            const pos = $element.position();
+            window.parent.updatePosition(element.dataset.id, pos.left - 10, pos.top);
+        });
+        updateSelectionBox(true);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedElements.forEach(element => {
+            const $element = $('#ele-' + element.dataset.id);
+            const pos = $element.position();
+            window.parent.updatePosition(element.dataset.id, pos.left, pos.top - 10);
+        });
+        updateSelectionBox(true);
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        selectedElements.forEach(element => {
+            const $element = $('#ele-' + element.dataset.id);
+            const pos = $element.position();
+            window.parent.updatePosition(element.dataset.id, pos.left + 10, pos.top);
+        });
+        updateSelectionBox(true);
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedElements.forEach(element => {
+            const $element = $('#ele-' + element.dataset.id);
+            const pos = $element.position();
+            window.parent.updatePosition(element.dataset.id, pos.left, pos.top + 10);
+        });
+        updateSelectionBox(true);
     }
 });
-
-// 快速对齐
-function alignElement(type) {
-    if (!selectedElement) return;
-    const $element = $(selectedElement);
-    const $body = $('body');
-    const bodyWidth = $body.width();
-    const bodyHeight = $body.height();
-    const elementWidth = $element.outerWidth();
-    const elementHeight = $element.outerHeight();
-    
-    let newLeft = $element.position().left;
-    let newTop = $element.position().top;
-
-    switch(type) {
-        case 'center':
-            newLeft = (bodyWidth - elementWidth) / 2;
-            newTop = (bodyHeight - elementHeight) / 2;
-            break;
-        case 'hcenter':
-            newLeft = (bodyWidth - elementWidth) / 2;
-            break;
-        case 'vcenter':
-            newTop = (bodyHeight - elementHeight) / 2;
-            break;
-    }
-
-    $element.css({left: newLeft, top: newTop});
-    $selector.css({left: newLeft, top: newTop});
-    window.parent.updatePosition(selectedElement.dataset.id, newLeft, newTop);
-}
 
 // 层级调整
 function changeZIndex(type) {
@@ -205,59 +165,6 @@ function zoom(z){
     moving=true;
     selectElement(selectedElement);
     moving=false;
-}
-
-function previewAnimation(animation) {
-    const element = document.querySelector(`#ele-${animation.target}`);
-    if (!element) return;
-
-    // 克隆元素及其位置和尺寸
-    const previewEl = element.cloneNode(true);
-    const rect = element.getBoundingClientRect();
-    
-    document.querySelector('#preview-element').innerHTML = '';
-    document.querySelector('#preview-element').appendChild(previewEl);
-    document.querySelector('.preview-overlay').style.display = 'flex';
-
-    // 复制原始元素的位置和尺寸
-    previewEl.style.left = element.style.left;
-    previewEl.style.top = element.style.top;
-    previewEl.style.width = element.style.width;
-    previewEl.style.height = element.style.height;
-
-    // 禁用页面交互
-    document.body.style.pointerEvents = 'none';
-    document.querySelector('.preview-overlay').style.pointerEvents = 'auto';
-    
-    // 设置动画属性
-    const style = animStyle[animation.action][animation.type];
-    if (!style) return;
-
-    // 设置CSS变量
-    previewEl.style.setProperty('--anim-delay', `${animation.delay}s`);
-    previewEl.style.setProperty('--anim-prop-duration', `${animation.prop.duration}s`);
-    
-    // 设置过渡
-    previewEl.style.transition = style.transition;
-
-    // 设置初始状态
-    Object.entries(style.change.before).forEach(([prop, value]) => {
-        previewEl.style[prop] = value;
-    });
-
-    // 延迟设置结束状态以触发动画
-    setTimeout(() => {
-        Object.entries(style.change.after).forEach(([prop, value]) => {
-            previewEl.style[prop] = value;
-        });
-    }, 50);
-}
-
-function closePreview() {
-    document.querySelector('.preview-overlay').style.display = 'none';
-    document.querySelector('#preview-element').innerHTML = '';
-    // 恢复页面交互
-    document.body.style.pointerEvents = 'auto';
 }
 
 $('#controls').hide();
@@ -286,6 +193,7 @@ function updateSelectionBox(dontshowcontrols=false) {
         maxY = Math.max(maxY, bottom);
     });
 
+    console.log('minX:', minX, 'minY:', minY, 'maxX:', maxX, 'maxY:', maxY);
     $('#selector').show().css({
         left: minX,
         top: minY,
@@ -332,22 +240,6 @@ $(document).on('contextmenu', function(e) {
     }
 });
 
-// 元素右键菜单
-// $(document).on('contextmenu', '.element', function(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-    
-//     const $element = $(e.currentTarget);
-//     if (!selectedElements.includes($element[0])) {
-//         selectedElements = [$element[0]];
-//         selectedElement = $element[0];
-//         updateSelectionBox();
-//     }
-    
-//     const offset = window.parent.getpageoffset();
-//     window.parent.showcm(e.clientX * zoom_level + offset.left, e.clientY * zoom_level + offset.top, document.getElementById('cm'));
-// });
-
 // 委托处理所有元素的点击事件，以避免一些奇异的冒泡逻辑
 $(document).on('mousedown', function(e) {
     if(e.button !== 0) return;
@@ -369,6 +261,9 @@ $(document).on('mousedown', function(e) {
             width: $(selectedElement).width(),
             height: $(selectedElement).height()
         };
+        // 确保selectedElements有效
+        if(selectedElements.length==1)
+        selectedElements = [selectedElement];
         return;
     }
 
@@ -395,8 +290,6 @@ $(document).on('mousedown', function(e) {
             selectElement($element[0]);
         }
         if(selectedElements.length > 0) {
-            console.log('?');
-            // selectElement($element[0]);
             moving = true;
             $('#controls').hide();
             
@@ -440,6 +333,7 @@ $(document).on('mousemove', function(e) {
                 left: newLeft,
                 top: newTop
             });
+            // console.log('hi');
         });
         updateSelectionBox(dontshowcontrols=true);
     } else if (resizing && selectedElement) {
@@ -554,10 +448,46 @@ $(document).on('contextmenu', '.element', function(e) {
     window.parent.showcm(e.clientX * zoom_level + offset.left, e.clientY * zoom_level + offset.top, document.getElementById('cm'));
 });
 
+
+// 快速对齐
+function alignElementd(type) {
+    if (!selectedElement) return;
+    const $element = $(selectedElement);
+    const $body = $('body');
+    const bodyWidth = $body.width();
+    const bodyHeight = $body.height();
+    const elementWidth = $element.outerWidth();
+    const elementHeight = $element.outerHeight();
+    
+    let newLeft = $element.position().left;
+    let newTop = $element.position().top;
+
+    switch(type) {
+        case 'center':
+            newLeft = (bodyWidth - elementWidth) / 2;
+            newTop = (bodyHeight - elementHeight) / 2;
+            break;
+        case 'hcenter':
+            newLeft = (bodyWidth - elementWidth) / 2;
+            break;
+        case 'vcenter':
+            newTop = (bodyHeight - elementHeight) / 2;
+            break;
+    }
+
+    $element.css({left: newLeft, top: newTop});
+    $selector.css({left: newLeft, top: newTop});
+    window.parent.updatePosition(selectedElement.dataset.id, newLeft, newTop);
+}
+
+
 // 对齐功能
 function alignElement(type) {
     if (!selectedElements.length) return;
-    
+    if(selectedElements.length == 1) {
+        alignElementd(type);
+        return;
+    }
     const $body = $('body');
     const bodyWidth = $body.width();
     const bodyHeight = $body.height();

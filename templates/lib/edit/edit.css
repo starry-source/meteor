@@ -718,110 +718,111 @@ info{
 }
 
 /* 动画面板 */
-.animation-panel {
-    display: flex;
+#animation {
+    /* display: flex; */
     /* height: 300px; */
     height: 100%;
     padding: 10px;
-    gap: 10px;
+    /* gap: 10px; */
     overflow: hidden;
 }
 
-.animation-panel .timeline {
-    width: 240px;
-    min-height: 240px;
-    border-right: 1px solid #99999960;
+#animation>.timeline {
+    width: 100%;
+    /* width: 240px;
+    min-height: 240px; */
+    /* border-right: 1px solid #99999960; */
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
-    padding-right: 7px;
+    /* padding-right: 7px; */
 }
 
-.animation-panel .timeline>*{
+#animation .timeline>*{
     margin-bottom: 10px;
 }
 
-.animation-panel .animation-list {
+#animation .timeline>.top{
+    display: flex;
+    flex-direction: column;
+}
+
+#animation .animation-list {
     border-left: 2px solid #2983cc;
     margin-left: 8px;
     padding-left: 7px;
 }
 
-.animation-panel .nodes {
+#animation .kfs {
     margin: 7px 0;
 }
 
-.animation-panel .node {
-    /* background: #f5f5f5; */
-    border: 1px solid #99999960;
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin: 5px 0;
+#animation .kfs>.animation-item{
+    display: flex;
+    flex-direction: column;
 }
 
-/* .animation-panel .node-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-} */
+#animation .kfs>.animation-item>.kfsedit{
+    width: 100%;
 
-/* .animation-panel .node.selected {
-    background: #2983cc90;
-} */
+    >.view{
+        /* outline: 2px 2px solid var(--border-color); */
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
 
-/* .animation-panel .animation-item {
-    padding: 3px 8px;
-    margin: 2px 0;
-    border-radius: 4px;
+    >.view>.ele{
+        height: 20px;
+        width: 100%;
+    }
+}
+
+#animation .kfs>.animation-item>.kfsedit >.view>.ele>.timeline-block{
+    position: absolute;
+    height: 20px;
+    background: #2983cc;
     cursor: pointer;
+    border-radius: 5px;
+    transition: 80ms;
+    opacity: 0.6;
+}
+#animation .kfs>.animation-item>.kfsedit >.view>.ele>.timeline-block:not(.ui-draggable):hover{
+    background-color: var(--theme-primary-hover);
+}
+
+#animation .kfs>.animation-item>.kfsedit >.view>.ele>.timeline-block.ui-draggable{
+    cursor: grab;
+    transition: none;
+    opacity: 1;
+}
+
+#animation .kfs>.animation-item>.name{
     display: flex;
-    justify-content: space-between;
     align-items: center;
-} */
+    gap: 5px;
 
-/* .animation-panel .animation-item:hover {
-    background: #f5f5f5;
-} */
-
-.animation-panel .animation-item.selected {
-    background: var(--theme-primary-op);
-}
-.animation-panel .animation-editor {
-    flex-grow: 1;
-    padding: 10px;
-    display: block;
-    overflow: hidden;
-}
-
-.animation-panel .animation-editor .preview-btn {
-    margin-top: 10px;
-    align-self: center;
-}
-
-.animation-panel .editor {
-    display: none;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-.animation-panel .editor>*{
-    animation: showeditor 200ms;
-}
-
-@keyframes showeditor {
-    from{
-        opacity: 0;
+    >.spot{
+        width: 10px;
+        height: 10px;
+        border-radius: 10px;
+        border: 2px solid var(--text-secondary);
     }
-    to{
-        opacity: 1;
+
+    >.spot.click{
+        border-color: var(--theme-primary);
+    }
+
+    >span{
+        flex-grow: 1;
     }
 }
 
-.animation-panel .no-selection {
-    color: #999;
-    text-align: center;
-    padding: 20px;
+#animation .animation-item.selected {
+    /* background: var(--theme-primary-op); */
+    border: 2px solid var(--theme-primary);
+    background-color: transparent !important;
+    opacity: 1 !important;
 }
 
 #animation, #sty{

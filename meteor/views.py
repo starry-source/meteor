@@ -11,119 +11,137 @@ from tkinter import filedialog
 
 from .spec import *
 
-# 文件数据
+# 示例文件数据
 f = {
-    'name': '示例',
-    'height': 1080,
-    'width': 1920,
-    'pages': [{
-        'background': '#ffffff',
-        'elements': [
-            {
-                'id': 'uuidcode1',
-                'type': 'rect',
-                'prop':{},
-                'x': 560,
-                'y': 270,
-                'width': 800,
-                'height': 490,
-                'style': {
-                    'shape.bgcolor':'#f7f397',
-                    'shape.bdrd':'40'
-                },
-                'tags': []
-            },
-            {
-                'id': 'uuidcode3',
-                'type': 'text',
-                'prop':{
-                    'content':'欢迎使用'
-                },
-                'x': 710,
-                'y': 330,
-                'width': 500,
-                'height': 170,
-                'style': {
-                    'text.color':'#000000',
-                },
-                'tags': ['title']
-            },
-            {
-                'id': 'uuidcode2',
-                'type': 'text',
-                'prop':{
-                    'content':'Meteor'
-                },
-                'x': 460,
-                'y': 420,
-                'width': 1000,
-                'height': 300,
-                'style': {
-                    'text.color':'#2983cc',
-                    'text.fontSize':190
-                },
-                'tags': ['title']
-            },
-        ],
-        'animation':{
-            
-            'onload':[ # 直接为动画，省去节点名称
-                # onload为页面展示时立即播放的动画
+    "name": "示例",
+    "height": 1080,
+    "width": 1920,
+    "pages": [
+        {
+            "background": "#ffffff",
+            "elements": [
                 {
-                    'target':'uuidcode1',
-                    'type':'fade',
-                    'action':'in',
-                    'delay':0.5,
-                    'prop':{
-                        'duration':0.5
-                    }
+                    "type": "text",
+                    "prop": {
+                        "content": "欢迎使用"
+                    },
+                    "style": {
+                        "text.fontSize": "55",
+                        "text.color": "#000000",
+                        "base.x": 821,
+                        "base.y": 438,
+                        "base.width": 277,
+                        "base.height": 87,
+                        "text.font": "inherit",
+                        "text.textAlign": "center"
+                    },
+                    "tags": [],
+                    "id": "333b2d4a-1991-4c73-b803-0b0c58ff66aa"
+                },
+                {
+                    "type": "text",
+                    "prop": {
+                        "content": "Meteor"
+                    },
+                    "style": {
+                        "text.fontSize": "100",
+                        "text.color": "#2983cc",
+                        "base.x": 754,
+                        "base.y": 493,
+                        "base.width": 411,
+                        "base.height": 158,
+                        "text.textAlign": "center"
+                    },
+                    "tags": [],
+                    "id": "2d91178c-dcb1-4124-8c7a-b2a7e59e94a7"
+                },
+                {
+                    "type": "image",
+                    "prop": {
+                        "src": "/temp/images/acdf2ab7-41f4-4798-a7ab-96186bb0418b.svg",
+                        "objectFit": "contain"
+                    },
+                    "style": {
+                        "base.x": 550,
+                        "base.y": 427,
+                        "base.width": 233,
+                        "base.height": 225,
+                        "effect.opacity": "0"
+                    },
+                    "tags": [],
+                    "id": "9c4161ac-5b6b-47a4-92f5-b971ea36ccbe"
+                },
+                {
+                    "type": "text",
+                    "prop": {
+                        "content": "专业的演示文稿制作器，支持 Html 打包"
+                    },
+                    "style": {
+                        "text.fontSize": 30,
+                        "text.color": "#000000",
+                        "base.x": 837,
+                        "base.y": 575,
+                        "base.width": 640,
+                        "base.height": 51,
+                        "effect.opacity": "0"
+                    },
+                    "tags": [],
+                    "id": "c2f43fdc-574a-4e20-b065-ff830977737b"
                 }
             ],
-            'onclick':[
+            "animation": [
                 {
-                    # 点击节点 1
-                    'name':'显示文字',
-                    'actions':[
-                        # 同时播放
-                        {
-                            'target':'uuidcode3',
-                            'type':'fade',
-                            'action':'in',
-                            'delay':0,
-                            'prop':{
-                                'duration':0.5
-                            }
+                    "prop": {
+                        "when": "click",
+                        "duration": 1
+                    },
+                    "elements": {
+                        "333b2d4a-1991-4c73-b803-0b0c58ff66aa": {
+                            "base.x": 821,
+                            "base.y": 340,
+                            "base.width": 277,
+                            "base.height": 87,
+                            "anim.delay": 0,
+                            "anim.duration": "0.45",
+                            "effect.opacity": "0",
+                            "anim.timingFunction": "ease-in"
                         },
-                        {
-                            'target':'uuidcode2',
-                            'type':'fade',
-                            'action':'in',
-                            'delay':0.2,
-                            'prop':{
-                                'duration':1
-                            }
+                        "2d91178c-dcb1-4124-8c7a-b2a7e59e94a7": {
+                            "base.x": 898,
+                            "base.y": 440,
+                            "base.width": 411,
+                            "base.height": 158,
+                            "anim.delay": "0.14",
+                            "anim.duration": "0.5",
+                            "text.color": "#000000",
+                            "text.fontSize": "100"
+                        },
+                        "9c4161ac-5b6b-47a4-92f5-b971ea36ccbe": {
+                            "base.x": 630,
+                            "base.y": 427,
+                            "base.width": 233,
+                            "base.height": 225,
+                            "effect.opacity": "100",
+                            "anim.delay": 0,
+                            "anim.duration": 1,
+                            "anim.timingFunction": "ease-out"
+                        },
+                        "c2f43fdc-574a-4e20-b065-ff830977737b": {
+                            "base.x": 937,
+                            "base.y": 575,
+                            "base.width": 640,
+                            "base.height": 51,
+                            "anim.duration": "0.59",
+                            "effect.opacity": "100",
+                            "anim.delay": "0.39",
+                            "anim.timingFunction": "ease-out"
                         }
-                    ]
-                },
-                {
-                    # 节点 2
-                    'name':'淡出背景',
-                    'actions':[
-                        {
-                            'target':'uuidcode1',
-                            'type':'fade',
-                            'action':'out',
-                            'delay':0,
-                            'prop':{
-                                'duration':0.5
-                            }
-                        }
-                    ]
+                    }
                 }
             ]
         }
-    }],
-    'tags': {
+    ],
+    "tags": {
         'title': {
             'prop':{
                 'name':'标题样式'
@@ -142,15 +160,11 @@ f = {
                 'shape.bdrd':30
             }
         }
-    },
+    }
 }
 
 filepath=None
 
-def getnewele(type):
-    ret=allele[type]
-    ret['id']=str(uuid.uuid4())
-    return ret
 
 def index(req):
     return render(req,'meteor/index.html')
@@ -199,42 +213,57 @@ def render_tag_css():
         
     return tagscss
 
-def render_html(pg):
-    html = ''
+def render_css(pg):
+    css=''
     i = 0
-    for element in f['pages'][pg]['elements']:
+    for ele in f['pages'][pg]['elements']:
         i+=1
-        # 复制一份样式
-        style=dict(element['style'])
-        
-        style_str = f'''
-            left: {element['x']}px;
-            top: {element['y']}px;
-            width: {element['width']}px;
-            height: {element['height']}px;
-            z-index: {i};
-        '''
-        # 利用重复嵌套格式化实现模板填充，for tag 中同
-        style_str += ''.join([
+        # 复制一份样式，可考虑移除
+        style=dict(ele['style'])
+        # 利用重复嵌套格式化实现模板填充
+        css += f'#ele-{ele["id"]}{{z-index:{i};'+''.join([
             ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
             .format(value=v)
             for k, v in style.items()
-        ])
+        ])+'}\n'
+
+    for i,kf in enumerate(f['pages'][pg]['animation']):
+        for eleid in kf['elements']:
+            ele=kf['elements'][eleid]
+            css+=f'.page.active.kf-{i} #ele-{eleid}'+'{'+(''.join([
+                ('{['+(']['.join(k.split('.')))+'][css]}').format(styleM)
+                .format(value=v)
+                for k, v in ele.items()
+            ]))+'}\n'
+    return css
+
+def render_html(pg):
+    html = ''
+    for element in f['pages'][pg]['elements']:
             
-        html += htmlM[element['type']].format(e=element, tags=' ele-tag-'.join(['']+element.get('tags', [])), style=style_str)
+        html += htmlM[element['type']].format(e=element, tags=' ele-tag-'.join(['']+element.get('tags', [])))
     return html
 
 def getpage(req,pg):
+    print(render_css(int(pg)))
     return jsr({
         'background': f['pages'][int(pg)]['background'],
         'elements_html': render_html(int(pg)),
-        'tagcss':render_tag_css()
+        'tagcss':render_tag_css(),
+        'css': render_css(int(pg))
     })
 
 def add_element(req,pg):
     if req.method == 'POST':
         data = json.loads(req.body.decode())
-        f['pages'][int(pg)]['elements'].append(getnewele(data['type']))
+        newele=allele[data['type']]
+        newele['id']=str(uuid.uuid4())
+        f['pages'][int(pg)]['elements'].append(newele)
+        anele=newele
+        anele['duration']=0.1
+        anele['delay']=0
+        for an in f['pages'][int(pg)]['animation']:
+            an['elements'][newele['id']]=anele
         return jsr(f['pages'][int(pg)])
     return jsr({'status': 'error'})
 
@@ -244,15 +273,8 @@ def delete_element(req,pg):
         # data={elements:[{id:...},{id:...}]}
         for el in data['elements']:
             f['pages'][int(pg)]['elements']=[ele for ele in f['pages'][int(pg)]['elements'] if ele['id']!=el['id']]
-            for i,action in enumerate(f['pages'][int(pg)]['animation']['onclick']):
-                for j,action in enumerate(action['actions']):
-                    if action['target'] == el['id']:
-                        f['pages'][int(pg)]['animation']['onclick'][i]['actions'].pop(j)
-                        break
-            for i,action in enumerate(f['pages'][int(pg)]['animation']['onload']):
-                if action['target'] == el['id']:
-                    f['pages'][int(pg)]['animation']['onload'].pop(i)
-                    break
+            for kf in f['pages'][int(pg)]['animation']:
+                kf['elements'] = {eid: ele for eid, ele in kf['elements'].items() if eid != el['id']}
         return jsr(f['pages'][int(pg)])
     return jsr({'status': 'error'})
 
@@ -302,13 +324,14 @@ def play(req):
     for i in range(len(f['pages'])):
         pages_html.append({
             'background': f['pages'][i]['background'],
-            'html': render_html(i)
+            'html': render_html(i),
         })
     return render(req, 'meteor/export.html', {
         'pages': pages_html,
         'width': f['width'],
         'height': f['height'],
         'tagcss': render_tag_css(),
+        'css': [render_css(i) for i in range(len(f['pages']))],
         'data':f['pages'],
         'animStyle':animStyle,
     })
@@ -339,6 +362,7 @@ def export_file(req):
         'width': f['width'],
         'height': f['height'],
         'tagcss': render_tag_css(),
+        'css': [render_css(i) for i in range(len(f['pages']))],
         'data': f['pages'],
         'animStyle':animStyle,
     }).content.decode()
@@ -366,10 +390,7 @@ def newpage(req):
     f['pages'].append({
         'background': f['pages'][-1]['background'] if len(f['pages'])>0 else '#ffffff',
         'elements': [],
-        'animation':{
-            'onload':[],
-            'onclick':[]
-        }
+        'animation':[]
     })
     return redirect('/edit/'+str(len(f['pages'])-1))
 def deletepage(req):

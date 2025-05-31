@@ -55,23 +55,51 @@ html,body{
     display: flex;
     flex-direction: column;
     /* flex-grow: 1; */
-    width: 40%;
+    width: 45%;
     min-width: 500px;
     max-width: 800px;
     padding: 7px;
     height: 100%;
     max-height: 100%;
     overflow: hidden;
+    gap: 7px;
 }
 
 #mainpage>.css>.p1{
     display: flex;
-    height: 200px;
-    min-height: 200px;
+    gap: 7px;
+    flex-grow: 1;
+}
+
+#mainpage>.css>.p1>#animation{
+    width: 200px;
 }
 
 
-#tools, #animation, #prop, #tags, #sty, #pages{
+#mainpage>.css>.p1>.stys{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    flex-grow: 1;
+}
+
+#mainpage>.css>.p1>.stys>#sty{
+    flex-grow: 1;
+}
+
+#mainpage>.css>.p1>.stys>#tags{
+    height: 150px;
+}
+
+#mainpage>.css>.p2{
+    display: flex;
+    height: 200px;
+    min-height: 200px;
+    gap: 7px;
+}
+
+
+#tools, #animation, #prop, #kfprop, #tags, #sty, #pages{
     border-radius: 9px;
     box-shadow: #00000040 0 1px 2px;
 }
@@ -98,7 +126,7 @@ html,body{
     }
 }
 
-#tools, #animation, #prop, #tags, #sty, #pages, #bar, #toolbar>.b{
+#tools, #animation, #prop, #kfprop, #tags, #sty, #pages, #bar, #toolbar>.b{
     background-color: var(--bg-panel);
     /* backdrop-filter: blur(20px) saturate(0.4) brightness(2); */
     /* background-color: #ffffff90; */
@@ -138,19 +166,13 @@ html,body{
     /* margin-top: 6px; */
 }
 
-#prop{
+#prop, #kfprop{
     height: 100%;
     width: 50%;
     max-width: 50%;
 }
 
-#tags{
-    height: 100%;
-    width: 50%;
-    margin-left: 7px;
-}
-
-#sti{
+/* #sti{
     height: 40px;
     min-height: 40px;
     display: flex;
@@ -182,13 +204,13 @@ html,body{
     width: 100%;
     display: flex;
     height: calc(100% - 240px);
-}
+} */
 
-#prop, #tags{
+#prop, #kfprop, #tags{
     padding: 5px 10px;
 }
 
-#prop>.title, #tags>.title{
+#prop>.title, #kfprop>.title, #tags>.title{
     font-size: 20px;
 }
 

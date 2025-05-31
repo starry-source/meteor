@@ -1,6 +1,51 @@
 
 # 所有样式模板
 styleM = {
+    'base':{
+        'height':{
+            'css': 'height: {value}px;',
+            'type': 'hiden',
+        },
+        'width':{
+            'css': 'width: {value}px;',
+            'type': 'hiden',
+        },
+        'x':{
+            'css':' left: {value}px;',
+            'type':'hiden',
+        },
+        'y':{
+            'css':' top: {value}px;',
+            'type':'hiden',
+        },
+    },
+    'anim':{
+        'name':'动画',
+        'duration': {
+            'css':' transition-duration: {value}s;',
+            'name':'持续时间/s',
+            'type':'number',
+            'default': 0.2
+        },
+        'delay': {
+            'css':' transition-delay: {value}s;',
+            'name':'延迟/s',
+            'type':'number',
+            'default': 0
+        },
+        'timingFunction': {
+            'css':' transition-timing-function: {value};',
+            'name':'动画曲线',
+            'type':'select',
+            'options': [
+                {'name': '线性', 'value': 'linear'},
+                {'name': '缓入', 'value': 'ease-in'},
+                {'name': '缓出', 'value': 'ease-out'},
+                {'name': '缓入缓出', 'value': 'ease-in-out'},
+            ],
+            'default': 'linear'
+        }
+    },
     'text': {
         'name':'文本样式',
         'font': {
@@ -46,13 +91,21 @@ styleM = {
             'name': '圆角',
             'type': 'number',
         }
+    },
+    'effect':{
+        'name':'效果',
+        'opacity':{
+            'css':'opacity: {value}%;',
+            'name':'透明度/%',
+            'type':'number100'
+        }
     }
 } 
 
 htmlM={
-    'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}" style="{style}">{e[prop][content]}</span>',
-    'rect': '<div id="ele-{e[id]}" class="element {tags} element-rect" data-id="{e[id]}" style="{style}"></div>',
-    'image': '<img id="ele-{e[id]}" class="element {tags} element-image" data-id="{e[id]}" style="{style}" src="{e[prop][src]}">',
+    'text': '<span id="ele-{e[id]}" class="element {tags} element-text" data-id="{e[id]}">{e[prop][content]}</span>',
+    'rect': '<div id="ele-{e[id]}" class="element {tags} element-rect" data-id="{e[id]}"></div>',
+    'image': '<img id="ele-{e[id]}" class="element {tags} element-image" data-id="{e[id]}" src="{e[prop][src]}" style="object-fit: {e[prop][objectFit]};">',
 }
 
 # 属性模板，其中 tag 键方便 js 中元素和标签 loadprop 的共用
@@ -64,52 +117,20 @@ props={
         }
     },
     'anim':{
-        'in':{
-            'fade':{
-                'duration': {
-                    'name': '持续时间/s',
-                    'type': 'number',
-                    'default': 0.2
-                }
-            },
-            'no':{
-            }
+        'when': {
+            'name': '何时触发',
+            'type': 'select',
+            'options':[
+                {'name':'单击','value':'click'},
+                # {'name':'上一帧后','value':'follow'},
+            ],
+            'default':'click'
         },
-        'out':{
-            'fade':{
-                'duration': {
-                    'name': '持续时间/s',
-                    'type': 'number',
-                    'default': 0.2
-                }
-            },
-            'no':{
-            }
-        },
-        # 'flyin':{
-        #     'direction':{
-        #         'name':'方向',
-        #         'type':'select',
-        #         'options':[
-        #             {'name':'上','value':'top'},
-        #             {'name':'下','value':'bottom'},
-        #             {'name':'左','value':'left'},
-        #             {'name':'右','value':'right'}
-        #         ]
-        #     }
-        # },
-        # 'flyout':{
-        #     'direction':{
-        #         'name':'方向',
-        #         'type':'select',
-        #         'options':[
-        #             {'name':'上','value':'top'},
-        #             {'name':'下','value':'bottom'},
-        #             {'name':'左','value':'left'},
-        #             {'name':'右','value':'right'}
-        #         ]
-        #     }
-        # }
+        'duration': {
+            'name': '持续时间/s',
+            'type': 'number',
+            'default': 0.2
+        }
     },
     'text':{
         'content':{
@@ -141,26 +162,26 @@ allele={
         'prop':{
             'content':'新文本'
         },
-        'x':100,
-        'y':100,
-        'width':200,
-        'height':50,
         'style':{
             'text.fontSize':30,
             'text.color':'#000000',
+            'base.x':100,
+            'base.y':100,
+            'base.width':200,
+            'base.height':50,
         },
         'tags':[]
     },
     'rect':{
         'type':'rect',
         'prop':{},
-        'x':100,
-        'y':100,
-        'width':100,
-        'height':50,
         'style':{
             'shape.bgcolor':'#000000',
             'shape.bdrd':0,
+            'base.x':100,
+            'base.y':100,
+            'base.width':100,
+            'base.height':50,
         },
         'tags':[]
     },
@@ -170,11 +191,12 @@ allele={
             'src':'',
             'objectFit':'cover'
         },
-        'x':100,
-        'y':100,
-        'width':200,
-        'height':150,
-        'style':{},
+        'style':{
+            'base.x':100,
+            'base.y':100,
+            'base.width':200,
+            'base.height':150,
+        },
         'tags':[]
     }
 }

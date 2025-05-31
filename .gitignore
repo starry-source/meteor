@@ -1,5 +1,5 @@
 **/__pycache__
 /packup/meteor.exe
-/temp
+/temp/*.*
 /packup/temp
 *.sqlite3

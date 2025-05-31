@@ -4,7 +4,7 @@
 
 <p>
 <h1 align="center" style="line-height:1;">Meteor</h1>
-<p align="center">基于 Html 的演示文稿制作器，跨平台无软件无依赖播放<br>
+<p align="center">专业的演示文稿制作器，支持 Html 打包<br>
 由星源开发 · Developed by Starry Source</p>
 </p>
 <p align="center" class="shields">
