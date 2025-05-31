@@ -58,7 +58,7 @@ f = {
                 {
                     "type": "image",
                     "prop": {
-                        "src": "/temp/images/acdf2ab7-41f4-4798-a7ab-96186bb0418b.svg",
+                        "src": "/lib/logo.svg",
                         "objectFit": "contain"
                     },
                     "style": {
